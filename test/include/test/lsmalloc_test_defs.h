@@ -1,0 +1,1 @@
+#define LSMALLOC_UNIT_TEST
