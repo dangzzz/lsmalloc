@@ -1,15 +1,18 @@
 #ifndef LSMALLOC_INTERNAL_H
 #define	LSMALLOC_INTERNAL_H
 
+//在编译时以-D flag的形式定义
+//#define _GNU_SOURCE
+
 #  include <sys/param.h>
 #  include <sys/mman.h>
 #  include <sys/syscall.h>
 #  if !defined(SYS_write) && defined(__NR_write)
 #    define SYS_write __NR_write
 #  endif
-#  include <sys/uio.h>
-#  include <pthread.h>
-#  include <errno.h>
+#include <sys/uio.h>
+#include <pthread.h>
+#include <errno.h>
 #include <sys/types.h>
 #include <limits.h>
 #include <stdarg.h>
@@ -42,6 +45,8 @@
 
 #include "lsmalloc/internal/util.h"
 #include "lsmalloc/internal/pool.h"
+#include "lsmalloc/internal/mutex.h"
+#include "lsmalloc/internal/arena.h"
 
 #undef LSMALLOC_H_TYPES
 /******************************************************************************/
@@ -50,6 +55,8 @@
 
 #include "lsmalloc/internal/util.h"
 #include "lsmalloc/internal/pool.h"
+#include "lsmalloc/internal/mutex.h"
+#include "lsmalloc/internal/arena.h"
 
 #undef LSMALLOC_H_STRUCTS
 /******************************************************************************/
@@ -58,6 +65,8 @@
 
 #include "lsmalloc/internal/util.h"
 #include "lsmalloc/internal/pool.h"
+#include "lsmalloc/internal/mutex.h"
+#include "lsmalloc/internal/arena.h"
 
 #undef LSMALLOC_H_EXTERNS
 /******************************************************************************/
@@ -66,6 +75,8 @@
 
 #include "lsmalloc/internal/util.h"
 #include "lsmalloc/internal/pool.h"
+#include "lsmalloc/internal/mutex.h"
+#include "lsmalloc/internal/arena.h"
 
 #undef LSMALLOC_H_INLINES
 /******************************************************************************/

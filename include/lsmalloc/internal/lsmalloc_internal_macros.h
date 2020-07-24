@@ -27,9 +27,7 @@
 #  endif
 #  define LSMALLOC_INLINE static inline
 #  define LSMALLOC_INLINE_C static inline
-#  ifdef _MSC_VER
-#    define inline _inline
-#  endif
+
 #endif
 
 #ifdef LSMALLOC_CC_SILENCE
