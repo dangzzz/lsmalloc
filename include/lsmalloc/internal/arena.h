@@ -39,6 +39,7 @@ struct arena_s {
 extern size_t arena_maxlarge;
 extern size_t arena_maxsmall;
 void	arena_boot(void);
+bool	arena_new(arena_t *arena, unsigned ind);
 
 #endif /* LSMALLOC_H_EXTERNS */
 /******************************************************************************/

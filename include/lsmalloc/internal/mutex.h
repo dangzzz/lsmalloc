@@ -18,12 +18,12 @@ struct malloc_mutex_s {
 #endif /* LSMALLOC_H_STRUCTS */
 /******************************************************************************/
 #ifdef LSMALLOC_H_EXTERNS
-
+/* 先init后就可以lock,unlock */
 bool	malloc_mutex_init(malloc_mutex_t *mutex);
 void	malloc_mutex_prefork(malloc_mutex_t *mutex);
 void	malloc_mutex_postfork_parent(malloc_mutex_t *mutex);
 void	malloc_mutex_postfork_child(malloc_mutex_t *mutex);
-bool	mutex_boot(void);
+
 
 #endif /* LSMALLOC_H_EXTERNS */
 /******************************************************************************/

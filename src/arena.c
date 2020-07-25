@@ -25,3 +25,16 @@ arena_boot(void)
     arena_maxlarge = 0;
     arena_maxsmall = 0;
 }
+
+bool
+arena_new(arena_t *arena, unsigned ind)
+{
+	unsigned i;
+
+    if (malloc_mutex_init(&arena->lock))
+	    return (true);
+	arena->ind = ind;
+	arena->nthreads = 0;
+
+    return false;
+}

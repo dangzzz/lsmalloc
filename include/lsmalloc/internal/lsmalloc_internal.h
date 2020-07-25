@@ -64,6 +64,21 @@
 /******************************************************************************/
 #define	LSMALLOC_H_EXTERNS
 
+/* Number of CPUs. */
+extern unsigned		ncpus;
+
+/* Protects arenas initialization (arenas, arenas_total). */
+extern malloc_mutex_t	arenas_lock;
+
+/*
+ * Arenas that are used to service external requests.  Not all elements of the
+ * arenas array are necessarily used; arenas are created lazily as needed.
+ */
+extern arena_t		**arenas;
+
+arena_t	*arenas_extend(unsigned ind);
+void	arenas_cleanup(void *arg);
+arena_t	*choose_arena_hard(void);
 
 #include "lsmalloc/internal/util.h"
 #include "lsmalloc/internal/pool.h"
@@ -82,6 +97,44 @@
 #include "lsmalloc/internal/tsd.h"
 #include "lsmalloc/internal/arena.h"
 
+#ifndef LSMALLOC_ENABLE_INLINE
+malloc_tsd_protos(LSMALLOC_ATTR(unused), arenas, arena_t *)
+
+
+arena_t	*choose_arena(arena_t *arena);
+#endif
+
+
+
+#if (defined(LSMALLOC_ENABLE_INLINE) || defined(LSMALLOC_C_))
+
+/*
+ * Map of pthread_self() --> arenas[???], used for selecting an arena to use
+ * for allocations.
+ */
+malloc_tsd_externs(arenas, arena_t *)
+malloc_tsd_funcs(LSMALLOC_ALWAYS_INLINE, arenas, arena_t *, NULL,
+    arenas_cleanup)
+
+
+/* Choose an arena based on a per-thread value. */
+LSMALLOC_INLINE arena_t *
+choose_arena(arena_t *arena)
+{
+	arena_t *ret;
+
+	if (arena != NULL)
+		return (arena);
+
+	if ((ret = *arenas_tsd_get()) == NULL) {
+		ret = choose_arena_hard();
+		assert(ret != NULL);
+	}
+
+	return (ret);
+}
+#endif
+
 LSMALLOC_ALWAYS_INLINE void *
 ilmalloct(size_t size, arena_t *arena, void **ptr)
 {
@@ -90,7 +143,7 @@ ilmalloct(size_t size, arena_t *arena, void **ptr)
 
 	
 	return (arena_malloc(arena, size, false, ptr));
-	}
+}
 
 LSMALLOC_ALWAYS_INLINE void *
 imalloc(size_t size,void **ptr){

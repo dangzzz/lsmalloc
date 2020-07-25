@@ -112,7 +112,6 @@ a_name##_tsd_set(a_type *val)						\
 		    (void *)(&a_name##_tls))) {				\
 			malloc_write("<LSMALLOC>: Error"		\
 			    " setting TSD for "#a_name"\n");		\
-			if (opt_abort)					\
 				abort();				\
 		}							\
 	}								\

@@ -59,8 +59,3 @@ malloc_mutex_postfork_child(malloc_mutex_t *mutex)
 	}
 }
 
-bool
-mutex_boot(void)
-{
-	return (false);
-}
