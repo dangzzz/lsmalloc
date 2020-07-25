@@ -16,5 +16,8 @@
 /* sizeof(intmax_t) == 2^LG_SIZEOF_INTMAX_T. */
 #define LG_SIZEOF_INTMAX_T 3
 
+/* One page is 2^STATIC_PAGE_SHIFT bytes. */
+#define STATIC_PAGE_SHIFT 12
+
 #endif /* LSMALLOC_INTERNAL_DEFS_H_ */
 

@@ -42,12 +42,53 @@
 #define	LSMALLOC_H_TYPES
 #include "lsmalloc/internal/lsmalloc_internal_macros.h"
 
+/*
+ * Maximum size of L1 cache line.  This is used to avoid cache line aliasing.
+ * In addition, this controls the spacing of cacheline-spaced size classes.
+ *
+ * CACHELINE cannot be based on LG_CACHELINE because __declspec(align()) can
+ * only handle raw constants.
+ */
+#define	LG_CACHELINE		6
+#define	CACHELINE		64
+#define	CACHELINE_MASK		(CACHELINE - 1)
+
+/* Return the smallest cacheline multiple that is >= s. */
+#define	CACHELINE_CEILING(s)						\
+	(((s) + CACHELINE_MASK) & ~CACHELINE_MASK)
+
+/* Page size.  STATIC_PAGE_SHIFT is determined by the configure script. */
+#ifdef PAGE_MASK
+#  undef PAGE_MASK
+#endif
+#define	LG_PAGE		STATIC_PAGE_SHIFT
+#define	PAGE		((size_t)(1U << STATIC_PAGE_SHIFT))
+#define	PAGE_MASK	((size_t)(PAGE - 1))
+
+/* Return the smallest pagesize multiple that is >= s. */
+#define	PAGE_CEILING(s)							\
+	(((s) + PAGE_MASK) & ~PAGE_MASK)
+
+/* Return the nearest aligned address at or below a. */
+#define	ALIGNMENT_ADDR2BASE(a, alignment)				\
+	((void *)((uintptr_t)(a) & (-(alignment))))
+
+/* Return the offset between a and the nearest aligned address at or below a. */
+#define	ALIGNMENT_ADDR2OFFSET(a, alignment)				\
+	((size_t)((uintptr_t)(a) & (alignment - 1)))
+
+/* Return the smallest alignment multiple that is >= s. */
+#define	ALIGNMENT_CEILING(s, alignment)					\
+	(((s) + (alignment - 1)) & (-(alignment)))
+
+
 
 #include "lsmalloc/internal/util.h"
 #include "lsmalloc/internal/pool.h"
 #include "lsmalloc/internal/mutex.h"
 #include "lsmalloc/internal/tsd.h"
 #include "lsmalloc/internal/arena.h"
+#include "lsmalloc/internal/chunk.h"
 
 #undef LSMALLOC_H_TYPES
 /******************************************************************************/
@@ -59,6 +100,7 @@
 #include "lsmalloc/internal/mutex.h"
 #include "lsmalloc/internal/tsd.h"
 #include "lsmalloc/internal/arena.h"
+#include "lsmalloc/internal/chunk.h"
 
 #undef LSMALLOC_H_STRUCTS
 /******************************************************************************/
@@ -85,6 +127,7 @@ arena_t	*choose_arena_hard(void);
 #include "lsmalloc/internal/mutex.h"
 #include "lsmalloc/internal/tsd.h"
 #include "lsmalloc/internal/arena.h"
+#include "lsmalloc/internal/chunk.h"
 
 #undef LSMALLOC_H_EXTERNS
 /******************************************************************************/
@@ -96,6 +139,7 @@ arena_t	*choose_arena_hard(void);
 #include "lsmalloc/internal/mutex.h"
 #include "lsmalloc/internal/tsd.h"
 #include "lsmalloc/internal/arena.h"
+#include "lsmalloc/internal/chunk.h"
 
 #ifndef LSMALLOC_ENABLE_INLINE
 malloc_tsd_protos(LSMALLOC_ATTR(unused), arenas, arena_t *)
