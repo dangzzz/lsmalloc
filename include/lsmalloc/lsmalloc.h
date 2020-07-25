@@ -14,6 +14,12 @@ extern "C" {
 #  define LSMALLOC_NOINLINE LSMALLOC_ATTR(noinline)
 #endif
 
+
+LSMALLOC_EXPORT void * lsmalloc(size_t size,void **ptr) LSMALLOC_ATTR(malloc);
+
+
+
+
 #ifdef __cplusplus
 };
 #endif

@@ -46,6 +46,7 @@
 #include "lsmalloc/internal/util.h"
 #include "lsmalloc/internal/pool.h"
 #include "lsmalloc/internal/mutex.h"
+#include "lsmalloc/internal/tsd.h"
 #include "lsmalloc/internal/arena.h"
 
 #undef LSMALLOC_H_TYPES
@@ -56,6 +57,7 @@
 #include "lsmalloc/internal/util.h"
 #include "lsmalloc/internal/pool.h"
 #include "lsmalloc/internal/mutex.h"
+#include "lsmalloc/internal/tsd.h"
 #include "lsmalloc/internal/arena.h"
 
 #undef LSMALLOC_H_STRUCTS
@@ -66,6 +68,7 @@
 #include "lsmalloc/internal/util.h"
 #include "lsmalloc/internal/pool.h"
 #include "lsmalloc/internal/mutex.h"
+#include "lsmalloc/internal/tsd.h"
 #include "lsmalloc/internal/arena.h"
 
 #undef LSMALLOC_H_EXTERNS
@@ -76,7 +79,23 @@
 #include "lsmalloc/internal/util.h"
 #include "lsmalloc/internal/pool.h"
 #include "lsmalloc/internal/mutex.h"
+#include "lsmalloc/internal/tsd.h"
 #include "lsmalloc/internal/arena.h"
+
+LSMALLOC_ALWAYS_INLINE void *
+ilmalloct(size_t size, arena_t *arena, void **ptr)
+{
+
+	assert(size != 0);
+
+	
+	return (arena_malloc(arena, size, false, ptr));
+	}
+
+LSMALLOC_ALWAYS_INLINE void *
+imalloc(size_t size,void **ptr){
+    return (imalloct(size,NULL,ptr));
+}
 
 #undef LSMALLOC_H_INLINES
 /******************************************************************************/
