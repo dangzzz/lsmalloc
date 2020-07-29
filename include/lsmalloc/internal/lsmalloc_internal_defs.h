@@ -1,5 +1,5 @@
 #ifndef LSMALLOC_INTERNAL_DEFS_H_
-#define	LSMALLOC_INTERNAL_DEFS_H_'
+#define	LSMALLOC_INTERNAL_DEFS_H_
 
 /* Non-empty if the tls_model attribute is supported. */
 #define LSMALLOC_TLS_MODEL 

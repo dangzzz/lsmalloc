@@ -1,0 +1,16 @@
+
+
+/src/*.[od]
+
+
+
+
+/test/src/*.[od]
+
+
+
+/test/unit/[A-Za-z]*
+!/test/unit/[A-Za-z]*.*
+/test/unit/*.[od]
+
+

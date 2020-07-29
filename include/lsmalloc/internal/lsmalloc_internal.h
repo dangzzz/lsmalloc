@@ -143,7 +143,7 @@ arena_t	*choose_arena_hard(void);
 #include "lsmalloc/internal/pool.h"
 #include "lsmalloc/internal/mutex.h"
 #include "lsmalloc/internal/tsd.h"
-#include "lsmalloc/internal/arena.h"
+
 #include "lsmalloc/internal/chunk.h"
 #include "lsmalloc/internal/base.h"
 
@@ -185,8 +185,10 @@ choose_arena(arena_t *arena)
 }
 #endif
 
+#include "lsmalloc/internal/arena.h"
+
 LSMALLOC_ALWAYS_INLINE void *
-ilmalloct(size_t size, arena_t *arena, void **ptr)
+imalloct(size_t size, arena_t *arena, void **ptr)
 {
 
 	assert(size != 0);
@@ -199,6 +201,8 @@ LSMALLOC_ALWAYS_INLINE void *
 imalloc(size_t size,void **ptr){
     return (imalloct(size,NULL,ptr));
 }
+
+
 
 #undef LSMALLOC_H_INLINES
 /******************************************************************************/

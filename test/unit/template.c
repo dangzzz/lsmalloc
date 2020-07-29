@@ -1,7 +1,6 @@
 #include "test/lsmalloc_test.h"
 
 
-
 TEST_BEGIN(sampletest1)
 {   
     /* test code */

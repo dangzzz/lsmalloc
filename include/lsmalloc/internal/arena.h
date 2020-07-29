@@ -16,7 +16,7 @@ struct region_s{
 	size_t				size;
 	void **				ptr;
 	unsigned short		threadid;
-}
+};
 
 struct chunk_s{
 
@@ -29,7 +29,7 @@ struct chunk_s{
 	void					*paddr;
 
 
-}
+};
 
 
 struct arena_s {

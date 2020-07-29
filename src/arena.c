@@ -37,7 +37,7 @@ arena_chunk_alloc(arena_t *arena){
     chunk->paddr = addr;
     chunk->tail = addr;
     chunk->arena = arena;
-    ql_new(chunk->regions);
+    ql_new(&chunk->regions);
     
 
     return chunk;
@@ -69,6 +69,6 @@ arena_new(arena_t *arena, unsigned ind)
 
 void * 
 arena_malloc_large(arena_t *arena,size_t size, bool zero, void **ptr){
-
+    
 }
 
