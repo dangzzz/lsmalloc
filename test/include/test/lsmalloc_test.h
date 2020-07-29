@@ -60,3 +60,4 @@
  * Common test utilities.
  */
 #include "test/test.h"
+#include "test/thd.h"
