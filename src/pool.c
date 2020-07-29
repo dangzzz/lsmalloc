@@ -1,6 +1,6 @@
 #define	LSMALLOC_POOL_C_
 #include "lsmalloc/internal/lsmalloc_internal.h"
-
+//todo per arena has its own pool
 /******************************************************************************/
 /* Data. */
 /*right version
@@ -87,7 +87,7 @@ void pmempool_destroy(pmempool_t * pp){
 
 
 /*从mem pool中分配chunksize大小，和chunksize对齐*/
-void * pmempool_alloc(pmempool_t * pp){
+void * pmempool_chunk_alloc(pmempool_t * pp){
 	
 	//内存池耗尽
 	if (pp->freelist[pp->fl_now].pre == freelist_len && 

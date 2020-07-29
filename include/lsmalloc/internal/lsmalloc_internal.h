@@ -31,6 +31,8 @@
 
 #include "../lsmalloc.h"
 
+#include "lsmalloc/internal/qr.h"
+#include "lsmalloc/internal/ql.h"
 /*
  *   LSMALLOC_H_TYPES   : Preprocessor-defined constants and psuedo-opaque data
  *                        types.
@@ -89,6 +91,7 @@
 #include "lsmalloc/internal/tsd.h"
 #include "lsmalloc/internal/arena.h"
 #include "lsmalloc/internal/chunk.h"
+#include "lsmalloc/internal/base.h"
 
 #undef LSMALLOC_H_TYPES
 /******************************************************************************/
@@ -101,6 +104,7 @@
 #include "lsmalloc/internal/tsd.h"
 #include "lsmalloc/internal/arena.h"
 #include "lsmalloc/internal/chunk.h"
+#include "lsmalloc/internal/base.h"
 
 #undef LSMALLOC_H_STRUCTS
 /******************************************************************************/
@@ -128,6 +132,7 @@ arena_t	*choose_arena_hard(void);
 #include "lsmalloc/internal/tsd.h"
 #include "lsmalloc/internal/arena.h"
 #include "lsmalloc/internal/chunk.h"
+#include "lsmalloc/internal/base.h"
 
 #undef LSMALLOC_H_EXTERNS
 /******************************************************************************/
@@ -140,6 +145,7 @@ arena_t	*choose_arena_hard(void);
 #include "lsmalloc/internal/tsd.h"
 #include "lsmalloc/internal/arena.h"
 #include "lsmalloc/internal/chunk.h"
+#include "lsmalloc/internal/base.h"
 
 #ifndef LSMALLOC_ENABLE_INLINE
 malloc_tsd_protos(LSMALLOC_ATTR(unused), arenas, arena_t *)

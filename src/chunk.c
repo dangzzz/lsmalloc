@@ -81,6 +81,7 @@ chunk_boot(void)
 	/* Set variables according to the value of opt_lg_chunk. */
 	chunksize = (ZU(1) << opt_lg_chunk);
 	assert(chunksize >= PAGE);
+
 	chunksize_mask = chunksize - 1;
 	chunk_npages = (chunksize >> LG_PAGE);
 

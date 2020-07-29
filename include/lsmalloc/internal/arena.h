@@ -2,10 +2,34 @@
 #ifdef LSMALLOC_H_TYPES
 
 typedef struct arena_s arena_t;
-
+typedef struct chunk_s chunk_t;
+typedef struct region_s region_t;
 #endif /* LSMALLOC_H_TYPES */
 /******************************************************************************/
 #ifdef LSMALLOC_H_STRUCTS
+
+
+struct region_s{
+	ql_elm(region_t)	regions_link;
+
+	unsigned short		attr;
+	size_t				size;
+	void **				ptr;
+	unsigned short		threadid;
+}
+
+struct chunk_s{
+
+	ql_head(region_t) 	regions;
+
+	arena_t					*arena;
+
+	void					*tail;
+
+	void					*paddr;
+
+
+}
 
 
 struct arena_s {
@@ -30,6 +54,8 @@ struct arena_s {
 	 */
 	malloc_mutex_t		lock;
 
+	pmempool_t				pool;
+
 };
 
 #endif /* LSMALLOC_H_STRUCTS */
@@ -40,7 +66,7 @@ extern size_t arena_maxlarge;
 extern size_t arena_maxsmall;
 void	arena_boot(void);
 bool	arena_new(arena_t *arena, unsigned ind);
-
+void	*arena_malloc_large(arena_t *arena,size_t size, bool zero, void **ptr);
 #endif /* LSMALLOC_H_EXTERNS */
 /******************************************************************************/
 #ifdef LSMALLOC_H_INLINES

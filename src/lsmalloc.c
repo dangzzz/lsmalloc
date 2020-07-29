@@ -131,6 +131,10 @@ malloc_init_hard(void){
 		assert(false);
 	}
 
+	if (base_boot()) {
+		assert(false);
+	}
+
 	if (arenas_tsd_boot()) {
 		assert(false);
 	}
