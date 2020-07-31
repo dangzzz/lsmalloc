@@ -110,6 +110,8 @@
 /******************************************************************************/
 #define	LSMALLOC_H_EXTERNS
 
+extern __thread unsigned short lid;  
+
 /* Number of CPUs. */
 extern unsigned		ncpus;
 

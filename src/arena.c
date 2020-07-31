@@ -67,8 +67,26 @@ arena_new(arena_t *arena, unsigned ind)
     return false;
 }
 
-void * 
-arena_malloc_large(arena_t *arena,size_t size, bool zero, void **ptr){
+static void *
+arena_region_alloc(arena_t *arena,size_t size, bool zero, void **ptr)
+{
     
+}
+
+void * 
+arena_malloc_large(arena_t *arena,size_t size, bool zero, void **ptr)
+{
+    void        *ret;
+
+    malloc_mutex_lock(&arena->lock);
+
+    /* 分配的大小对齐到8字节 */
+	size = ALIGNMENT_CEILING(size, sizeof(long long));
+    
+    ret = arena_region_alloc(arena,size,zero,ptr);
+
+    return ret;
+
+	malloc_mutex_unlock(&arena->lock);
 }
 

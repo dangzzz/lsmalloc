@@ -4,10 +4,15 @@
 typedef struct arena_s arena_t;
 typedef struct chunk_s chunk_t;
 typedef struct region_s region_t;
+typedef struct pregion_s pregion_t;
 #endif /* LSMALLOC_H_TYPES */
 /******************************************************************************/
 #ifdef LSMALLOC_H_STRUCTS
 
+
+struct pregion_s{
+	
+};
 
 struct region_s{
 	ql_elm(region_t)	regions_link;
