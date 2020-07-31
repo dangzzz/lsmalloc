@@ -71,7 +71,7 @@ struct arena_s {
 
 	ql_head(chunk_t) 	avail_chunks;
 
-
+	chunk_t				*maxchunk;
 };
 
 #endif /* LSMALLOC_H_STRUCTS */
