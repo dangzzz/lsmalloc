@@ -38,7 +38,7 @@ arenas_extend(unsigned ind)
 {
 	arena_t *ret;
 
-	ret = (arena_t *)base_alloc(sizeof(arena_t));
+	ret = (arena_t *)malloc(sizeof(arena_t));
 	if (ret != NULL && arena_new(ret, ind) == false) {
 		arenas[ind] = ret;
 		return (ret);

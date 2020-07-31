@@ -1,6 +1,10 @@
 /******************************************************************************/
 #ifdef LSMALLOC_H_TYPES
 
+#define REGION_ALIVE (unsigned short)0x1U;
+#define REGION_DIRTY (unsigned short)0x2U;
+
+
 typedef struct arena_s arena_t;
 typedef struct chunk_s chunk_t;
 typedef struct region_s region_t;
@@ -18,9 +22,10 @@ struct region_s{
 	ql_elm(region_t)	regions_link;
 
 	unsigned short		attr;
+	unsigned short		threadid;
 	size_t				size;
 	void **				ptr;
-	unsigned short		threadid;
+	void*				paddr;
 };
 
 struct chunk_s{
@@ -33,8 +38,11 @@ struct chunk_s{
 
 	void					*paddr;
 
+	ql_elm(chunk_t)	avail_link;
 
+	size_t				availsize;
 };
+
 
 
 struct arena_s {
@@ -60,6 +68,9 @@ struct arena_s {
 	malloc_mutex_t		lock;
 
 	pmempool_t				pool;
+
+	ql_head(chunk_t) 	avail_chunks;
+
 
 };
 

@@ -31,6 +31,9 @@
 
 #include "../lsmalloc.h"
 
+
+#define RB_COMPACT
+#include "lsmalloc/internal/rb.h"
 #include "lsmalloc/internal/qr.h"
 #include "lsmalloc/internal/ql.h"
 /*

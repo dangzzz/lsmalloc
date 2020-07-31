@@ -1,3 +1,4 @@
+//todo not any more using base,change to slab
 /******************************************************************************/
 #ifdef LSMALLOC_H_TYPES
 
