@@ -17,7 +17,8 @@ extern "C" {
 
 LSMALLOC_EXPORT void * lsmalloc(size_t size,void **ptr) LSMALLOC_ATTR(malloc);
 
-
+malloc_tsd_protos(, lid, unsigned short)
+malloc_tsd_funcs(, lid, unsigned short, NULL, NULL)
 
 
 #ifdef __cplusplus

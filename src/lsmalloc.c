@@ -5,6 +5,8 @@
 /* Data. */
 
 malloc_tsd_data(, arenas, arena_t *, NULL)
+//lsmalloc.h   malloc_tsd_protos malloc_tsd_funcs
+malloc_tsd_data(, lid, unsigned short, NULL)
 
 unsigned	ncpus;
 //todo 动态分配和找最少,目前一个thread一个
@@ -14,7 +16,7 @@ arena_t			*arenas[50];
 /*用于更新lid*/
 static unsigned short lthread_cnt = 0;
 /*每个线程拥有不同的lid，用于标识线程*/
-__thread unsigned short lid = 0;  
+//__thread unsigned short lid = 0;  
 
 /* Set to true once the allocator has been initialized. */
 static bool		malloc_initialized = false;
@@ -118,12 +120,7 @@ malloc_ncpus(void)
 //todo __thread to tsd
 static void inline
 lid_boot(){
-	/*每个线程有不同的lid*/
-	if (lid == 0) 
-	{	
-		lthread_cnt = lthread_cnt + 1; 
-		lid = lthread_cnt;
-	}
+	lid_tsd_set(&lthread_cnt);
 }
 
 static void
