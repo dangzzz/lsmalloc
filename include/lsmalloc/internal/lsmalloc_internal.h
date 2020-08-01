@@ -154,7 +154,7 @@ arena_t	*choose_arena_hard(void);
 
 #ifndef LSMALLOC_ENABLE_INLINE
 malloc_tsd_protos(LSMALLOC_ATTR(unused), arenas, arena_t *)
-
+malloc_tsd_protos(LSMALLOC_ATTR(unused), lid, unsigned short)
 
 arena_t	*choose_arena(arena_t *arena);
 #endif
@@ -170,6 +170,9 @@ arena_t	*choose_arena(arena_t *arena);
 malloc_tsd_externs(arenas, arena_t *)
 malloc_tsd_funcs(LSMALLOC_ALWAYS_INLINE, arenas, arena_t *, NULL,
     arenas_cleanup)
+
+malloc_tsd_externs(lid, unsigned short)
+malloc_tsd_funcs(LSMALLOC_ALWAYS_INLINE, lid, unsigned short, NULL, NULL)
 
 
 /* Choose an arena based on a per-thread value. */
