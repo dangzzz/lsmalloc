@@ -19,7 +19,7 @@ struct huge_s
 	int file_no;
 	
 	/*所对应的pmem中内存块地址*/
-	void * addr;
+	void * paddr;
 };
 typedef rb_tree(huge_t) huge_tree_t;
 
@@ -27,10 +27,11 @@ typedef rb_tree(huge_t) huge_tree_t;
 /******************************************************************************/
 #ifdef LSMALLOC_H_EXTERNS
 
+rb_proto(, huge_tree_, huge_tree_t, huge_t)
+
 #endif /* LSMALLOC_H_EXTERNS */
 /******************************************************************************/
 
-rb_proto(, huge_tree_, huge_tree_t, huge_t)
 
 #ifdef LSMALLOC_H_INLINES
 
