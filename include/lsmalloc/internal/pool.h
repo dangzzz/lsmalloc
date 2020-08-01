@@ -16,15 +16,13 @@ struct pmempool_s{
 	int file_no;
 
 	/*当前可用于分配的内存块下标*/
-	short fl_now;
+	char fl_now; //update: short->char
 	
 	/*数组模拟链表*/
 	struct freelist{
-		short nxt, pre;
+		char nxt, pre;
 	}freelist[freelist_len+1];	
 };
-
-
 
 #endif /* LSMALLOC_H_STRUCTS */
 /******************************************************************************/

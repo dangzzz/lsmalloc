@@ -3,14 +3,9 @@
 //todo per arena has its own pool
 /******************************************************************************/
 /* Data. */
-/*right version
 extern int mmap_file; 
 extern int pmem_consmp;
-*/
-/*test version*/
-int mmap_file = 0;
-int pmem_consmp = 0;
-int lchunksize = 1<<22;
+
 /******************************************************************************/
 /*
  * Function prototypes for static functions that are referenced prior to
@@ -32,7 +27,7 @@ void pmempool_create(pmempool_t * pp){
 	int is_pmem;
 
 	size_t size = PMEMPOOL_SIZE;
-	size_t alignment = lchunksize;  //test version
+	size_t alignment = chunksize;  
 
 	sprintf(str,"/mnt/pmem/%d",mmap_file);
 	mmap_file++;
@@ -95,7 +90,7 @@ void * pmempool_chunk_alloc(pmempool_t * pp){
 		return NULL;
 	}
 
-	void * ret = (void *)((intptr_t)pp->addr + pp->fl_now*lchunksize); //test version
+	void * ret = (void *)((intptr_t)pp->addr + pp->fl_now*chunksize); 
 
 	pp->freelist[pp->freelist[pp->fl_now].pre].nxt = pp->freelist[pp->fl_now].nxt;
 	pp->freelist[pp->freelist[pp->fl_now].nxt].pre = pp->freelist[pp->fl_now].pre;
@@ -109,7 +104,7 @@ void * pmempool_chunk_alloc(pmempool_t * pp){
 
 /*将ptr所指空间返还给mem pool*/
 void pmempool_free(pmempool_t * pp, void * ptr){
-	int id = ((intptr_t)ptr-(intptr_t)pp->addr)/lchunksize; //test version
+	int id = ((intptr_t)ptr-(intptr_t)pp->addr)/chunksize;
 	pp->freelist[id].pre = pp->freelist[pp->fl_now].pre;
 	pp->freelist[id].nxt = pp->fl_now;
 	pp->freelist[pp->freelist[pp->fl_now].pre].nxt = id;
