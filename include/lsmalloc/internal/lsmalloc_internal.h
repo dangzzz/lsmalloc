@@ -200,9 +200,10 @@ imalloct(size_t size, arena_t *arena, void **ptr)
 {
 
 	assert(size != 0);
-
-	
-	return (arena_malloc(arena, size, false, ptr));
+	if(size<=arena_maxlarge)
+		return (arena_malloc(arena, size, false, ptr));
+	else
+		return (huge_malloc(size));
 }
 
 LSMALLOC_ALWAYS_INLINE void *
@@ -211,6 +212,27 @@ imalloc(size_t size,void **ptr){
 }
 
 
+
+LSMALLOC_ALWAYS_INLINE void
+idalloct(void *ptr)
+{
+
+	assert(ptr != NULL);
+	chunk_t *chunk = (chunk_t *)CHUNK_ADDR2BASE(ptr);
+
+	if(chunk!=ptr)
+		arena_dalloc(chunk,ptr);
+	else
+		huge_dalloc(ptr);
+}
+
+
+LSMALLOC_ALWAYS_INLINE void
+idalloc(void *ptr)
+{
+
+	idalloct(ptr);
+}
 
 #undef LSMALLOC_H_INLINES
 /******************************************************************************/
