@@ -3,20 +3,26 @@
 
 #define REGION_ALIVE (unsigned short)0x1U;
 #define REGION_DIRTY (unsigned short)0x2U;
-
+#define CHUNK_TYPE_SLAB	's'
+#define CHUNK_TYPE_LOG	'l'
 
 typedef struct arena_s arena_t;
 typedef struct chunk_s chunk_t;
 typedef struct region_s region_t;
 typedef struct pregion_s pregion_t;
+typedef struct pchunk_s pchunk_t;
 #endif /* LSMALLOC_H_TYPES */
 /******************************************************************************/
 #ifdef LSMALLOC_H_STRUCTS
 
 
 struct pregion_s{
-	
+	region_t	*region;
 };
+
+struct pchunk_s{
+	chunk_t		*chunk;
+}
 
 struct region_s{
 	ql_elm(region_t)	regions_link;
@@ -26,6 +32,7 @@ struct region_s{
 	size_t				size;
 	void **				ptr;
 	void*				paddr;
+	chunk_t				*chunk;
 };
 
 struct chunk_s{
@@ -41,6 +48,8 @@ struct chunk_s{
 	ql_elm(chunk_t)	avail_link;
 
 	size_t				availsize;
+
+	char				chunktype;
 };
 
 
@@ -95,13 +104,23 @@ arena_malloc(arena_t *arena, size_t size, bool zero, void **ptr)
 
 	if(size <= arena_maxsmall){
 		return(arena_malloc_small(choose_arena(arena), size, zero, ptr));
-	}else if(size <= arena_maxlarge){
-		return(arena_malloc_large(choose_arena(arena), size, zero, ptr));
 	}else{
-		return(arena_malloc_huge(choose_arena(arena), size, zero));
+		return(arena_malloc_large(choose_arena(arena), size, zero, ptr));
 	}
 
 }
 
+LSMALLOC_ALWAYS_INLINE void 
+arena_dalloc(chunk_t *chunk,void* ptr)
+{
+	if(chunk->chunktype == CHUNK_TYPE_LOG){
+		region_t *region;
+		region = ((pregion_t *)(intptr_t)ptr-sizeof(pregion_t)))->region;
+		arena_dalloc_large(chunk->arena,chunk,region);
+	}else if(chunk->chunktype == CHUNK_TYPE_SLAB)[
+
+	]
+
+}
 #endif /* LSMALLOC_H_INLINES */
 /******************************************************************************/

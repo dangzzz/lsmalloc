@@ -35,10 +35,12 @@ arena_chunk_alloc(arena_t *arena){
     chunk_t * chunk;
     chunk = arena_chunk_alloc_vmem();
     chunk->paddr = addr;
-    chunk->tail = addr;
+    ((pchunk_t *)(chunk->paddr))->chunk= chunk;
+    chunk->tail = (void*)(((intptr_t)addr)+sizeof(pchunk_t));
     chunk->arena = arena;
     ql_new(&chunk->regions);
-    chunk->availsize = chunksize;
+    chunk->availsize = chunksize-sizeof(pchunk_t);
+    chunk->chunktype = CHUNK_TYPE_LOG;
 
     ql_elm_new(chunk,avail_link);
     ql_head_insert(&arena->avail_chunks,chunk,avail_link);
@@ -120,14 +122,16 @@ arena_region_alloc(arena_t *arena,size_t size, bool zero, void **ptr)
         }
     }
     region->paddr = arena_pmem_append_region(arena,chunk,size);
+    ((pregion_t *)(region->paddr))->region = region;
     region->ptr = ptr;
     region->size = size;
     region->threadid = lid;
     region->attr = REGION_ALIVE;
     ql_elm_new(region,regions_link);
     ql_tail_insert(&chunk->regions,region,regions_link);
-
-    return region->paddr;
+    region->chunk = chunk;
+ 
+    return (void*)((intptr_t)(region->paddr)+sizeof(pregion_t));
 }
 
 void * 
@@ -146,5 +150,21 @@ arena_malloc_large(arena_t *arena,size_t size, bool zero, void **ptr)
     return ret;
 
 	malloc_mutex_unlock(&arena->lock);
+}
+
+
+void 
+arena_dalloc_large_locked(arena_t *arena,chunk_t *chunk,region_t *region)
+{
+    region->attr = REGION_DIRTY;
+}
+
+void 
+arena_dalloc_large(arena_t *arena,chunk_t *chunk,region_t *region)
+{
+    malloc_mutex_lock(&arena->lock);
+	arena_dalloc_large_locked(arena, chunk, region);
+	malloc_mutex_unlock(&arena->lock);
+
 }
 

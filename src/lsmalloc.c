@@ -158,7 +158,13 @@ malloc_init_hard(void){
 	malloc_initialized = true;
 	malloc_mutex_unlock(&init_lock);
 }
-
+/*
+ * End initialization functions.
+ */
+/******************************************************************************/
+/*
+ * Begin malloc(3)-compatible functions.
+ */
 void *
 lsmalloc(size_t size,void **ptr){
     void *ret;
@@ -173,3 +179,23 @@ lsmalloc(size_t size,void **ptr){
 
     return ret;
 }
+
+
+
+static inline void
+ifree(void *ptr){
+	idalloc(ptr);
+}
+
+void
+lsfree(void *ptr)
+{
+
+	if (ptr != NULL)
+		ifree(ptr);
+}
+
+/*
+ * End malloc(3)-compatible functions.
+ */
+/******************************************************************************/
