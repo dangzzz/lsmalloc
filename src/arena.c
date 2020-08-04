@@ -27,6 +27,17 @@ arena_boot(void)
 }
 
 
+
+static inline void *
+arena_chunk_alloc_pmem(pmempool_t *pp){
+    return pmempool_chunk_alloc(pp);
+}
+
+static inline void *
+arena_chunk_alloc_vmem(){
+    return  malloc(sizeof(chunk_t));
+}
+
 static chunk_t *
 arena_chunk_alloc(arena_t *arena){
     void *addr;
@@ -47,15 +58,7 @@ arena_chunk_alloc(arena_t *arena){
     return chunk;
 }
 
-static inline void *
-arena_chunk_alloc_pmem(pmempool_t *pp){
-    return pmempool_chunk_alloc(pp);
-}
 
-static inline void *
-arena_chunk_alloc_vmem(){
-    return  malloc(sizeof(chunk_t));
-}
 
 bool
 arena_new(arena_t *arena, unsigned ind)

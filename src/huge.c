@@ -18,7 +18,7 @@ static huge_tree_t huge_tree;
 
 /******************************************************************************/
 static inline int
-huge_ad_cmp(huge_s *a , huge_s *b)
+huge_ad_cmp(huge_t *a , huge_t *b)
 {
 	int ret;
 	uintptr_t a_addr = (uintptr_t)a->addr;

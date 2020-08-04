@@ -13,4 +13,7 @@
 !/test/unit/[A-Za-z]*.*
 /test/unit/*.[od]
 
+/cmake_install.cmake
+/CMakeCache.txt
 
+/CMakeFiles

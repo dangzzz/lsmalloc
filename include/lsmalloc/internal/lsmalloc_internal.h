@@ -92,6 +92,7 @@
 #include "lsmalloc/internal/pool.h"
 #include "lsmalloc/internal/mutex.h"
 #include "lsmalloc/internal/tsd.h"
+#include "lsmalloc/internal/huge.h"
 #include "lsmalloc/internal/arena.h"
 #include "lsmalloc/internal/chunk.h"
 #include "lsmalloc/internal/base.h"
@@ -105,6 +106,7 @@
 #include "lsmalloc/internal/pool.h"
 #include "lsmalloc/internal/mutex.h"
 #include "lsmalloc/internal/tsd.h"
+#include "lsmalloc/internal/huge.h"
 #include "lsmalloc/internal/arena.h"
 #include "lsmalloc/internal/chunk.h"
 #include "lsmalloc/internal/base.h"
@@ -135,6 +137,7 @@ arena_t	*choose_arena_hard(void);
 #include "lsmalloc/internal/pool.h"
 #include "lsmalloc/internal/mutex.h"
 #include "lsmalloc/internal/tsd.h"
+#include "lsmalloc/internal/huge.h"
 #include "lsmalloc/internal/arena.h"
 #include "lsmalloc/internal/chunk.h"
 #include "lsmalloc/internal/base.h"
@@ -148,7 +151,7 @@ arena_t	*choose_arena_hard(void);
 #include "lsmalloc/internal/pool.h"
 #include "lsmalloc/internal/mutex.h"
 #include "lsmalloc/internal/tsd.h"
-
+#include "lsmalloc/internal/huge.h"
 #include "lsmalloc/internal/chunk.h"
 #include "lsmalloc/internal/base.h"
 
@@ -203,7 +206,8 @@ imalloct(size_t size, arena_t *arena, void **ptr)
 	if(size<=arena_maxlarge)
 		return (arena_malloc(arena, size, false, ptr));
 	else
-		return (huge_malloc(size));
+		//return (huge_malloc(size));
+		;
 }
 
 LSMALLOC_ALWAYS_INLINE void *
@@ -223,7 +227,8 @@ idalloct(void *ptr)
 	if(chunk!=ptr)
 		arena_dalloc(chunk,ptr);
 	else
-		huge_dalloc(ptr);
+		//huge_dalloc(ptr);
+		;
 }
 
 

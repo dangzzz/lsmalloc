@@ -22,7 +22,7 @@ struct pregion_s{
 
 struct pchunk_s{
 	chunk_t		*chunk;
-}
+};
 
 struct region_s{
 	ql_elm(region_t)	regions_link;
@@ -92,6 +92,7 @@ extern size_t arena_maxsmall;
 void	arena_boot(void);
 bool	arena_new(arena_t *arena, unsigned ind);
 void	*arena_malloc_large(arena_t *arena,size_t size, bool zero, void **ptr);
+void	arena_dalloc_large(arena_t *arena,chunk_t *chunk,region_t *region);
 #endif /* LSMALLOC_H_EXTERNS */
 /******************************************************************************/
 #ifdef LSMALLOC_H_INLINES
@@ -103,7 +104,7 @@ arena_malloc(arena_t *arena, size_t size, bool zero, void **ptr)
 	assert(size != 0);
 
 	if(size <= arena_maxsmall){
-		return(arena_malloc_small(choose_arena(arena), size, zero, ptr));
+		//return(arena_malloc_small(choose_arena(arena), size, zero, ptr));
 	}else{
 		return(arena_malloc_large(choose_arena(arena), size, zero, ptr));
 	}
@@ -115,11 +116,11 @@ arena_dalloc(chunk_t *chunk,void* ptr)
 {
 	if(chunk->chunktype == CHUNK_TYPE_LOG){
 		region_t *region;
-		region = ((pregion_t *)(intptr_t)ptr-sizeof(pregion_t)))->region;
+		region = ((pregion_t *)((intptr_t)ptr-sizeof(pregion_t)))->region;
 		arena_dalloc_large(chunk->arena,chunk,region);
-	}else if(chunk->chunktype == CHUNK_TYPE_SLAB)[
+	}else if(chunk->chunktype == CHUNK_TYPE_SLAB){
 
-	]
+	}
 
 }
 #endif /* LSMALLOC_H_INLINES */

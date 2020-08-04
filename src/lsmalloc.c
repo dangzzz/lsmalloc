@@ -120,6 +120,9 @@ malloc_ncpus(void)
 //todo __thread to tsd
 static void inline
 lid_boot(){
+	if (lid_tsd_boot()) {
+		assert(false);
+	}
 	lid_tsd_set(&lthread_cnt);
 }
 
