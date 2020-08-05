@@ -32,10 +32,13 @@ message(AUTHOR_WARNING "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n目前生成的Make
 
 add_executable(sample_test ${CMAKE_CURRENT_LIST_DIR}/test/integration/sample_test.c)
 target_compile_options(sample_test PRIVATE -std=gnu99 -g3 -Wall -O0 -D_GNU_SOURCE -D_REENTRANT)
-
 target_link_libraries(sample_test lsmalloc_static)
+
+add_executable(nofree ${CMAKE_CURRENT_LIST_DIR}/test/integration/nofree.cpp)
+target_compile_options(nofree PRIVATE -std=c++11 -g3 -Wall -O0 -D_GNU_SOURCE -D_REENTRANT)
+target_link_libraries(nofree lsmalloc_static)
 
 
 enable_testing()
 add_test(sample_test ${EXECUTABLE_OUTPUT_PATH}/sample_test)
-
+add_test(nofree ${EXECUTABLE_OUTPUT_PATH}/nofree 2)

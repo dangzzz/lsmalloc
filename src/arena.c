@@ -22,7 +22,7 @@ void
 arena_boot(void)
 {
     //todo
-    arena_maxlarge = 0;
+    arena_maxlarge = chunksize;
     arena_maxsmall = 0;
 }
 
@@ -99,7 +99,7 @@ arena_region_alloc(arena_t *arena,size_t size, bool zero, void **ptr)
     chunk_t *chunk;
     region_t *region = (region_t *)malloc(sizeof(region_t));
     chunk=ql_first(&arena->avail_chunks);
-    if(chunk->availsize<size){
+    if(chunk == NULL||chunk->availsize<size){
         chunk = arena_chunk_alloc(arena);
     }
     region->paddr = arena_pmem_append_region(arena,chunk,size);
