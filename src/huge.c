@@ -21,8 +21,8 @@ static inline int
 huge_ad_cmp(huge_t *a , huge_t *b)
 {
 	int ret;
-	uintptr_t a_addr = (uintptr_t)a->addr;
-	uintptr_t b_addr = (uintptr_t)b->addr;
+	uintptr_t a_addr = (uintptr_t)a->paddr;
+	uintptr_t b_addr = (uintptr_t)b->paddr;
 	ret = (a_addr > b_addr) - (a_addr < b_addr);
 	return ret;
 }
@@ -51,7 +51,7 @@ void * huge_alloc(size_t size)
 
 	/*mmap，和chunksize对齐*/
 	sprintf(str,"/mnt/pmem/%d",mmap_file);
-	atomic_add_uint32(&mmap_file, 1)//mmap_file++;
+	atomic_add_uint32(&mmap_file, 1);//mmap_file++;
 
 	if((addr=pmem_map_file(str,size,PMEM_FILE_CREATE,0666,&mapped_len, &is_pmem))==NULL)
 	{
@@ -77,7 +77,7 @@ void * huge_alloc(size_t size)
 		pmem_unmap((void*)((intptr_t)ret+size),((intptr_t)addr+size-(intptr_t)ret));
 	}
 
-	atomic_add_uint32(pmem_consmp, size)//pmem_consmp += size; 
+	atomic_add_uint32(pmem_consmp, size);//pmem_consmp += size; 
 
 	/*初始化结点，并插入树中*/
 	node.file_no = mmap_file;
@@ -96,17 +96,17 @@ void huge_dalloc(void *ptr)
 	huge_t *node, key;
 	char str[32];
 
-	key.addr = ptr;
+	key.paddr = ptr;
 	
 	malloc_mutex_lock(&huge_mtx);
 	node = huge_tree_search(&huge_tree, &key);
 	assert(node != NULL);
 	assert(node->paddr == ptr);
-	huge_tree_remove(&huge, node);
+	huge_tree_remove(&huge_tree, node);
 	malloc_mutex_unlock(&huge_mtx);
 	
 	sprintf(str,"/mnt/pmem/%d",node->file_no);
 	pmem_unmap(node->paddr, node->size);
-	atomic_sub_uint32(pmem_consmp, node->size)//pmem_consmp -= node->size;
+	atomic_sub_uint32(pmem_consmp, node->size);//pmem_consmp -= node->size;
 	remove(str);
 }
