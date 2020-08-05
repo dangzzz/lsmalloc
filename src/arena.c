@@ -92,22 +92,6 @@ arena_pmem_append_region(arena_t *arena, chunk_t *chunk, size_t size)
 	return ret;
 }
 
-static chunk_t *
-avail_chunks_find_max(arena_t *arena){
-    size_t maxsize = 0;
-    chunk_t *maxchunk=NULL ;
-    chunk_t *chunk = ql_first(&arena->avail_chunks);
-    while (chunk!=NULL){
-        if(chunk->availsize>maxsize){
-            maxsize = chunk->availsize;
-            maxchunk = chunk;
-        }
-        chunk = ql_next(&arena->avail_chunks,chunk,avail_link);
-    }
-
-    return maxchunk;
-
-}
 
 
 static void *
@@ -117,12 +101,7 @@ arena_region_alloc(arena_t *arena,size_t size, bool zero, void **ptr)
     region_t *region = (region_t *)malloc(sizeof(region_t));
     chunk=ql_first(&arena->avail_chunks);
     if(chunk->availsize<size){
-        if((arena->maxchunk!=NULL)&&(arena->maxchunk->availsize>size)){
-            chunk = arena->maxchunk;
-        }else{
-            arena->maxchunk = avail_chunks_find_max(arena);
-            chunk = arena_chunk_alloc(arena);
-        }
+        chunk = arena_chunk_alloc(arena);
     }
     region->paddr = arena_pmem_append_region(arena,chunk,size);
     ((pregion_t *)(region->paddr))->region = region;

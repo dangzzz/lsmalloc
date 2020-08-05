@@ -8,10 +8,14 @@ malloc_tsd_data(, arenas, arena_t *, NULL)
 //lsmalloc.h   malloc_tsd_protos malloc_tsd_funcs
 malloc_tsd_data(, lid, unsigned short, NULL)
 
+size_t	opt_narenas = 0;
+
 unsigned	ncpus;
-//todo 动态分配和找最少,目前一个thread一个
+
 malloc_mutex_t		arenas_lock;
-arena_t			*arenas[50];
+arena_t			**arenas;
+unsigned		narenas_total;
+unsigned		narenas_auto;
 
 /*用于更新lid*/
 static unsigned short lthread_cnt = 0;
@@ -64,23 +68,55 @@ choose_arena_hard(void)
 {
 	arena_t *ret;
 
-	unsigned i, choose;
+	if (narenas_auto > 1) {
+		unsigned i, choose, first_null;
 
-	choose = 0;
-
-	malloc_mutex_lock(&arenas_lock);
-	assert(arenas[0] != NULL);
-	for (i = 0; i < sizeof(arenas)/sizeof(arena_t *); i++) {
-		if (arenas[i] != NULL) {
-				choose = i;
+		choose = 0;
+		first_null = narenas_auto;
+		malloc_mutex_lock(&arenas_lock);
+		assert(arenas[0] != NULL);
+		for (i = 1; i < narenas_auto; i++) {
+			if (arenas[i] != NULL) {
+				/*
+				 * Choose the first arena that has the lowest
+				 * number of threads assigned to it.
+				 */
+				if (arenas[i]->nthreads <
+				    arenas[choose]->nthreads)
+					choose = i;
+			} else if (first_null == narenas_auto) {
+				/*
+				 * Record the index of the first uninitialized
+				 * arena, in case all extant arenas are in use.
+				 *
+				 * NB: It is possible for there to be
+				 * discontinuities in terms of initialized
+				 * versus uninitialized arenas, due to the
+				 * "thread.arena" mallctl.
+				 */
+				first_null = i;
+			}
 		}
+
+		if (arenas[choose]->nthreads == 0
+		    || first_null == narenas_auto) {
+			/*
+			 * Use an unloaded arena, or the least loaded arena if
+			 * all arenas are already initialized.
+			 */
+			ret = arenas[choose];
+		} else {
+			/* Initialize a new arena. */
+			ret = arenas_extend(first_null);
+		}
+		ret->nthreads++;
+		malloc_mutex_unlock(&arenas_lock);
+	} else {
+		ret = arenas[0];
+		malloc_mutex_lock(&arenas_lock);
+		ret->nthreads++;
+		malloc_mutex_unlock(&arenas_lock);
 	}
-
-
-	ret = arenas_extend(choose);
-
-	ret->nthreads++;
-	malloc_mutex_unlock(&arenas_lock);
 
 	arenas_tsd_set(&ret);
 
@@ -128,6 +164,8 @@ lid_boot(){
 
 static void
 malloc_init_hard(void){
+	arena_t *init_arenas[1];
+
     malloc_mutex_lock(&init_lock);
 	if (malloc_initialized) {
 		/*
@@ -141,13 +179,32 @@ malloc_init_hard(void){
 
 	lid_boot();
 
+	if(chunk_boot()){
+		assert(false);
+	}
+
     arena_boot();
 
 	if (malloc_mutex_init(&arenas_lock)) {
 		assert(false);
 	}
 
+
+
 	if (base_boot()) {
+		assert(false);
+	}
+
+
+
+
+	narenas_total = narenas_auto = 1;
+	arenas = init_arenas;
+	memset(arenas, 0, sizeof(arena_t *) * narenas_auto);
+	arenas_extend(0);
+
+	if (arenas[0] == NULL) {
+		malloc_mutex_unlock(&init_lock);
 		assert(false);
 	}
 
@@ -155,7 +212,31 @@ malloc_init_hard(void){
 		assert(false);
 	}
 
+
 	ncpus = malloc_ncpus();
+
+	if (opt_narenas == 0) {
+		/*
+		 * For SMP systems, create more than one arena per CPU by
+		 * default.
+		 */
+		if (ncpus > 1)
+			opt_narenas = ncpus << 2;
+		else
+			opt_narenas = 1;
+	}
+	narenas_auto = opt_narenas;
+	narenas_total = narenas_auto;
+	arenas = (arena_t **)malloc(sizeof(arena_t *) * narenas_total);
+	if (arenas == NULL) {
+		assert(false);
+	}
+	
+
+	memset(arenas, 0, sizeof(arena_t *) * narenas_total);
+
+	/* Copy the pointer to the one arena that was already initialized. */
+	arenas[0] = init_arenas[0];
 
 
 	malloc_initialized = true;

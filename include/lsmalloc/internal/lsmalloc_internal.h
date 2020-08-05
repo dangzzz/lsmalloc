@@ -87,7 +87,7 @@
 	(((s) + (alignment - 1)) & (-(alignment)))
 
 
-
+#include "lsmalloc/internal/atomic.h"
 #include "lsmalloc/internal/util.h"
 #include "lsmalloc/internal/pool.h"
 #include "lsmalloc/internal/mutex.h"
@@ -96,13 +96,13 @@
 #include "lsmalloc/internal/arena.h"
 #include "lsmalloc/internal/chunk.h"
 #include "lsmalloc/internal/base.h"
-#include "lsmalloc/internal/atomic.h"
+
 
 #undef LSMALLOC_H_TYPES
 /******************************************************************************/
 #define	LSMALLOC_H_STRUCTS
 
-
+#include "lsmalloc/internal/atomic.h"
 #include "lsmalloc/internal/util.h"
 #include "lsmalloc/internal/pool.h"
 #include "lsmalloc/internal/mutex.h"
@@ -128,12 +128,14 @@ extern malloc_mutex_t	arenas_lock;
  * Arenas that are used to service external requests.  Not all elements of the
  * arenas array are necessarily used; arenas are created lazily as needed.
  */
-extern arena_t		*arenas[50];
+extern arena_t		**arenas;
 
 arena_t	*arenas_extend(unsigned ind);
 void	arenas_cleanup(void *arg);
 arena_t	*choose_arena_hard(void);
 
+
+#include "lsmalloc/internal/atomic.h"
 #include "lsmalloc/internal/util.h"
 #include "lsmalloc/internal/pool.h"
 #include "lsmalloc/internal/mutex.h"
@@ -147,7 +149,7 @@ arena_t	*choose_arena_hard(void);
 /******************************************************************************/
 #define	LSMALLOC_H_INLINES
 
-
+#include "lsmalloc/internal/atomic.h"
 #include "lsmalloc/internal/util.h"
 #include "lsmalloc/internal/pool.h"
 #include "lsmalloc/internal/mutex.h"
