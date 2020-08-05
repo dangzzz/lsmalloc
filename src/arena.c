@@ -63,7 +63,6 @@ arena_chunk_alloc(arena_t *arena){
 bool
 arena_new(arena_t *arena, unsigned ind)
 {
-	unsigned i;
 
     if (malloc_mutex_init(&arena->lock))
 	    return (true);
@@ -107,7 +106,7 @@ arena_region_alloc(arena_t *arena,size_t size, bool zero, void **ptr)
     ((pregion_t *)(region->paddr))->region = region;
     region->ptr = ptr;
     region->size = size;
-    region->threadid = lid;
+    region->threadid = lid_tsd_get();
     region->attr = REGION_ALIVE;
     ql_elm_new(region,regions_link);
     ql_tail_insert(&chunk->regions,region,regions_link);

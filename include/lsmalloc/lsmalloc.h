@@ -6,6 +6,10 @@ extern "C" {
 
 #define LSMALLOC_HAVE_ATTR
 
+/* sizeof(void *) == 2^LG_SIZEOF_PTR. */
+#define	LG_SIZEOF_PTR 3
+
+
 #ifdef LSMALLOC_HAVE_ATTR
 #  define LSMALLOC_ATTR(s) __attribute__((s))
 #  define LSMALLOC_EXPORT LSMALLOC_ATTR(visibility("default"))
