@@ -242,6 +242,12 @@ idalloc(void *ptr)
 	idalloct(ptr);
 }
 
+LSMALLOC_ALWAYS_INLINE void
+idir(const char *path)
+{
+	
+}
+
 #undef LSMALLOC_H_INLINES
 /******************************************************************************/
 #endif /* LSMALLOC_INTERNAL_H */

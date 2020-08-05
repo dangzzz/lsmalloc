@@ -279,6 +279,13 @@ lsfree(void *ptr)
 		ifree(ptr);
 }
 
+
+
+void
+lspmemdir(const char *path)
+{
+	idir(path);
+}
 /*
  * End malloc(3)-compatible functions.
  */
