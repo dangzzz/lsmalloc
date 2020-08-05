@@ -128,7 +128,7 @@ extern malloc_mutex_t	arenas_lock;
  * Arenas that are used to service external requests.  Not all elements of the
  * arenas array are necessarily used; arenas are created lazily as needed.
  */
-extern arena_t		**arenas;
+extern arena_t		*arenas[50];
 
 arena_t	*arenas_extend(unsigned ind);
 void	arenas_cleanup(void *arg);
