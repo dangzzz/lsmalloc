@@ -102,7 +102,6 @@
 /******************************************************************************/
 #define	LSMALLOC_H_STRUCTS
 
-#include "lsmalloc/internal/atomic.h"
 #include "lsmalloc/internal/util.h"
 #include "lsmalloc/internal/pool.h"
 #include "lsmalloc/internal/mutex.h"
@@ -133,7 +132,6 @@ extern arena_t		**arenas;
 arena_t	*arenas_extend(unsigned ind);
 void	arenas_cleanup(void *arg);
 arena_t	*choose_arena_hard(void);
-
 
 #include "lsmalloc/internal/atomic.h"
 #include "lsmalloc/internal/util.h"

@@ -2,26 +2,41 @@
 #ifdef LSMALLOC_H_TYPES
 
 #define PMEMPOOL_SIZE 160*1024*1024 
-#define freelist_len (PMEMPOOL_SIZE/(1<<22))
+//#define freelist_len (PMEMPOOL_SIZE/(1<<22))
 typedef struct pmempool_s pmempool_t;
+typedef struct freelist_s freelist_t;
+typedef struct filelist_s filelist_t;
 
 #endif /* LSMALLOC_H_TYPES */
 /******************************************************************************/
 #ifdef LSMALLOC_H_STRUCTS
-struct pmempool_s{
-	/*内存池地址*/
-	void * addr;
 
-	/*用于标识文件*/	
-	int file_no;
+struct freelist_s
+{
+	qr(freelist_t) link; 
 
-	/*当前可用于分配的内存块下标*/
-	char fl_now; //update: short->char
+	/*pmem地址*/
+	void * paddr;
+};
+
+struct filelist_s
+{
+	qr(filelist_t) link;
 	
-	/*数组模拟链表*/
-	struct freelist{
-		char nxt, pre;
-	}freelist[freelist_len+1];	
+	/*用于标识文件*/
+	unsigned int file_no;
+
+	/*mempool起始地址*/
+	void * pool_paddr;
+};
+
+struct pmempool_s
+{
+	/*记录文件的标号及对应pmem起始地址*/	
+	filelist_t * file;
+
+	/*当前可用于分配的内存块链表*/
+	freelist_t *fl_now;
 };
 
 #endif /* LSMALLOC_H_STRUCTS */

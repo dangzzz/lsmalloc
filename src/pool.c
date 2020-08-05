@@ -19,8 +19,10 @@ unsigned int pmem_consmp = 0;
 
 
 /******************************************************************************/
+
 /*mmap一个memory pool*/
-void pmempool_create(pmempool_t * pp){
+void pmempool_create_one(pmempool_t * pp)
+{
 	void * ret, *addr;
 	char str[32];
 	size_t mapped_len;
@@ -29,8 +31,7 @@ void pmempool_create(pmempool_t * pp){
 	size_t size = PMEMPOOL_SIZE;
 	size_t alignment = chunksize;  
 
-	sprintf(str,"/mnt/pmem/%d", path, mmap_file);
-	mmap_file++;
+	sprintf(str,"/mnt/pmem/%d", ++mmap_file);
 
 	if((addr=pmem_map_file(str,size,PMEM_FILE_CREATE,0666,&mapped_len, &is_pmem))==NULL){
 		perror("pmem_map_file");
@@ -53,60 +54,84 @@ void pmempool_create(pmempool_t * pp){
 		pmem_unmap((void*)((intptr_t)ret+size),((intptr_t)addr+size-(intptr_t)ret));
 	}
 	
-	((pmempool_t *)ret)->file_no = mmap_file-1;
 	pmem_consmp += size; 
-	pp->addr = ret;
+
+	/*插入文件标识列表*/
+	filelist_t * filenow = (filelist_t *)malloc(sizeof(filelist_t));
+	filenow->file_no = mmap_file;
+	filenow->pool_paddr = ret;
+	qr_new(filenow, link);
+	qr_after_insert(pp->file, filenow, link);
+
 
 	/*初始化双向链表freelist*/
+	int freelist_len = PMEMPOOL_SIZE/chunksize; 
+	freelist_t * pre = pp->fl_now;
+	freelist_t * tmp;
 	for (int i = 0; i < freelist_len; i++){
-		pp->freelist[i].nxt = i+1;
+		tmp = (freelist_t *)malloc(sizeof(freelist_t));
+		tmp->paddr = (void *)((intptr_t)ret+i*chunksize);
+		qr_new(tmp, link);
+		qr_after_insert(pre, tmp, link);
+		pre = tmp;
 	}	
-	for (int i = 1; i <= freelist_len; i++){
-		pp->freelist[i].pre = i-1;
-	}
-	pp->freelist[freelist_len].nxt = 0;
-	pp->freelist[0].pre= freelist_len;
-	pp->fl_now = 0;
+	pp->fl_now = qr_next(pp->fl_now, link);
+}
+
+void pmempool_create(pmempool_t * pp)
+{
+	pp->fl_now = (freelist_t *)malloc(sizeof(freelist_t));
+	pp->fl_now->paddr = NULL;
+	qr_new(pp->fl_now, link);
+	pp->file = (filelist_t *)malloc(sizeof(filelist_t));
+	pp->file->file_no = 0;
+	qr_new(pp->file, link);
+	pmempool_create_one(pp);
 }
 
 
 /*unmap内存池*/
-void pmempool_destroy(pmempool_t * pp){
+void pmempool_destroy(pmempool_t * pp)
+{
 	char str[32];
 
-	sprintf(str,"/mnt/pmem/%d", pp->file_no);
-	pmem_unmap(pp->addr, PMEMPOOL_SIZE);
-	pmem_consmp -= PMEMPOOL_SIZE;
-	remove(str);
+	filelist_t * tmp = qr_next(pp->file, link);
+	while (tmp->file_no != 0)
+	{
+		sprintf(str,"/mnt/pmem/%d", pp->file->file_no);
+		pmem_unmap(pp->file->pool_paddr, PMEMPOOL_SIZE);
+		pmem_consmp -= PMEMPOOL_SIZE;
+		remove(str);
+	}
 }
 
-
 /*从mem pool中分配chunksize大小，和chunksize对齐*/
-void * pmempool_chunk_alloc(pmempool_t * pp){
-	
-	//内存池耗尽
-	if (pp->freelist[(int)pp->fl_now].pre == freelist_len && 
-			pp->freelist[(int)pp->fl_now].nxt == freelist_len){
-		return NULL;
+void * pmempool_chunk_alloc(pmempool_t * pp)
+{	
+	//如果内存池耗尽，则再分配一个
+	if (qr_next(pp->fl_now, link) == pp->fl_now)
+	{
+		pmempool_create_one(pp);
+		//return NULL;
 	}
 
-	void * ret = (void *)((intptr_t)pp->addr + pp->fl_now*chunksize); 
-
-	pp->freelist[(int)pp->freelist[(int)pp->fl_now].pre].nxt = pp->freelist[(int)pp->fl_now].nxt;
-	pp->freelist[(int)pp->freelist[(int)pp->fl_now].nxt].pre = pp->freelist[(int)pp->fl_now].pre;
-	pp->fl_now = pp->freelist[(int)pp->fl_now].nxt;
-	
-	if (pp->fl_now == freelist_len){
-		pp->fl_now = pp->freelist[(int)pp->fl_now].nxt;
+	if (pp->fl_now->paddr == NULL)  //空头结点
+	{
+		pp->fl_now = qr_next(pp->fl_now, link);
 	}
+	freelist_t * tmp = pp->fl_now;
+	void * ret = tmp->paddr;
+	pp->fl_now = qr_next(pp->fl_now, link);
+	qr_remove(tmp, link);
+
 	return ret;
 }
 
 /*将ptr所指空间返还给mem pool*/
-void pmempool_free(pmempool_t * pp, void * ptr){
-	int id = ((intptr_t)ptr-(intptr_t)pp->addr)/chunksize;
-	pp->freelist[id].pre = pp->freelist[(int)pp->fl_now].pre;
-	pp->freelist[id].nxt = pp->fl_now;
-	pp->freelist[(int)pp->freelist[(int)pp->fl_now].pre].nxt = id;
-	pp->freelist[(int)pp->fl_now].pre = id;
+void pmempool_free(pmempool_t * pp, void * ptr)
+{
+	freelist_t * tmp = (freelist_t *)malloc(sizeof(freelist_t));
+	tmp->paddr = ptr;
+	qr_new(tmp, link);
+	qr_before_insert(pp->fl_now, tmp, link);
 }
