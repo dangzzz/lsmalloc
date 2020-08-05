@@ -133,6 +133,8 @@ arena_t	*arenas_extend(unsigned ind);
 void	arenas_cleanup(void *arg);
 arena_t	*choose_arena_hard(void);
 
+extern char * pmem_path;
+
 #include "lsmalloc/internal/atomic.h"
 #include "lsmalloc/internal/util.h"
 #include "lsmalloc/internal/pool.h"
@@ -241,9 +243,9 @@ idalloc(void *ptr)
 }
 
 LSMALLOC_ALWAYS_INLINE void
-idir(const char *path)
+idir(char *path)
 {
-	
+	pmem_path = path;	
 }
 
 #undef LSMALLOC_H_INLINES

@@ -18,7 +18,7 @@ extern "C" {
 #  define LSMALLOC_NOINLINE LSMALLOC_ATTR(noinline)
 #endif
 
-LSMALLOC_EXPORT void lspmemdir(const char * path);
+LSMALLOC_EXPORT void lspmemdir(char * path);
 
 LSMALLOC_EXPORT void * lsmalloc(size_t size,void **ptr) LSMALLOC_ATTR(malloc);
 
