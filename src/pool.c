@@ -3,8 +3,8 @@
 //todo per arena has its own pool
 /******************************************************************************/
 /* Data. */
-extern int mmap_file; 
-extern int pmem_consmp;
+unsigned int mmap_file = 0; 
+unsigned int pmem_consmp = 0;
 
 /******************************************************************************/
 /*
@@ -85,19 +85,19 @@ void pmempool_destroy(pmempool_t * pp){
 void * pmempool_chunk_alloc(pmempool_t * pp){
 	
 	//内存池耗尽
-	if (pp->freelist[pp->fl_now].pre == freelist_len && 
-			pp->freelist[pp->fl_now].nxt == freelist_len){
+	if (pp->freelist[(int)pp->fl_now].pre == freelist_len && 
+			pp->freelist[(int)pp->fl_now].nxt == freelist_len){
 		return NULL;
 	}
 
 	void * ret = (void *)((intptr_t)pp->addr + pp->fl_now*chunksize); 
 
-	pp->freelist[pp->freelist[pp->fl_now].pre].nxt = pp->freelist[pp->fl_now].nxt;
-	pp->freelist[pp->freelist[pp->fl_now].nxt].pre = pp->freelist[pp->fl_now].pre;
-	pp->fl_now = pp->freelist[pp->fl_now].nxt;
+	pp->freelist[(int)pp->freelist[(int)pp->fl_now].pre].nxt = pp->freelist[(int)pp->fl_now].nxt;
+	pp->freelist[(int)pp->freelist[(int)pp->fl_now].nxt].pre = pp->freelist[(int)pp->fl_now].pre;
+	pp->fl_now = pp->freelist[(int)pp->fl_now].nxt;
 	
 	if (pp->fl_now == freelist_len){
-		pp->fl_now = pp->freelist[pp->fl_now].nxt;
+		pp->fl_now = pp->freelist[(int)pp->fl_now].nxt;
 	}
 	return ret;
 }
@@ -105,8 +105,8 @@ void * pmempool_chunk_alloc(pmempool_t * pp){
 /*将ptr所指空间返还给mem pool*/
 void pmempool_free(pmempool_t * pp, void * ptr){
 	int id = ((intptr_t)ptr-(intptr_t)pp->addr)/chunksize;
-	pp->freelist[id].pre = pp->freelist[pp->fl_now].pre;
+	pp->freelist[id].pre = pp->freelist[(int)pp->fl_now].pre;
 	pp->freelist[id].nxt = pp->fl_now;
-	pp->freelist[pp->freelist[pp->fl_now].pre].nxt = id;
-	pp->freelist[pp->fl_now].pre = id;
+	pp->freelist[(int)pp->freelist[(int)pp->fl_now].pre].nxt = id;
+	pp->freelist[(int)pp->fl_now].pre = id;
 }

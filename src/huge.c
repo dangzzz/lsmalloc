@@ -3,8 +3,8 @@
 
 /******************************************************************************/
 /* Data. */
-extern int mmap_file;
-extern int pmem_consmp;
+extern unsigned int mmap_file;
+extern unsigned int pmem_consmp;
 
 malloc_mutex_t huge_mtx;
 static huge_tree_t huge_tree;
@@ -77,7 +77,7 @@ void * huge_alloc(size_t size)
 		pmem_unmap((void*)((intptr_t)ret+size),((intptr_t)addr+size-(intptr_t)ret));
 	}
 
-	atomic_add_uint32(pmem_consmp, size);//pmem_consmp += size; 
+	atomic_add_uint32(&pmem_consmp, size);//pmem_consmp += size; 
 
 	/*初始化结点，并插入树中*/
 	node.file_no = mmap_file;
@@ -107,6 +107,6 @@ void huge_dalloc(void *ptr)
 	
 	sprintf(str,"/mnt/pmem/%d",node->file_no);
 	pmem_unmap(node->paddr, node->size);
-	atomic_sub_uint32(pmem_consmp, node->size);//pmem_consmp -= node->size;
+	atomic_sub_uint32(&pmem_consmp, node->size);//pmem_consmp -= node->size;
 	remove(str);
 }
