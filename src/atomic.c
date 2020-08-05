@@ -1,2 +1,2 @@
-#define	JEMALLOC_ATOMIC_C_
-#include "jemalloc/internal/jemalloc_internal.h"
+#define	LSMALLOC_ATOMIC_C_
+#include "lsmalloc/internal/lsmalloc_internal.h"
