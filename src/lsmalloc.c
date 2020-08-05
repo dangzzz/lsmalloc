@@ -27,6 +27,7 @@ static bool		malloc_initialized = false;
 
 static malloc_mutex_t	init_lock = PTHREAD_MUTEX_INITIALIZER;
 
+char * pmem_path;
 /******************************************************************************/
 /* Function prototypes for non-inline static functions. */
 
@@ -279,7 +280,10 @@ lsfree(void *ptr)
 		ifree(ptr);
 }
 
-
+static void idir(const char *path)
+{
+	pmem_path = path;
+}
 
 void
 lspmemdir(const char *path)
