@@ -96,6 +96,7 @@
 #include "lsmalloc/internal/arena.h"
 #include "lsmalloc/internal/chunk.h"
 #include "lsmalloc/internal/base.h"
+#include "lsmalloc/internal/atomic.h"
 
 #undef LSMALLOC_H_TYPES
 /******************************************************************************/
