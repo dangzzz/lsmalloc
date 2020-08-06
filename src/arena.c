@@ -127,10 +127,11 @@ arena_malloc_large(arena_t *arena,size_t size, bool zero, void **ptr)
 	size = ALIGNMENT_CEILING(size, sizeof(long long));
     
     ret = arena_region_alloc(arena,size,zero,ptr);
-
+    
+    malloc_mutex_unlock(&arena->lock);
     return ret;
 
-	malloc_mutex_unlock(&arena->lock);
+	
 }
 
 
