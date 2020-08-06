@@ -13,7 +13,7 @@ typedef unsigned long long ull;
 
 
 default_random_engine rand_e;
-std::normal_distribution<double> nor_b1(250, 0.1);
+std::normal_distribution<double> nor_b1(250, 50);
 
 
 
