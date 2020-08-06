@@ -106,7 +106,7 @@ arena_region_alloc(arena_t *arena,size_t size, bool zero, void **ptr)
     ((pregion_t *)(region->paddr))->region = region;
     region->ptr = ptr;
     region->size = size;
-    region->threadid = lid_tsd_get();
+    region->threadid = *lid_tsd_get();
     region->attr = REGION_ALIVE;
     ql_elm_new(region,regions_link);
     ql_tail_insert(&chunk->regions,region,regions_link);
