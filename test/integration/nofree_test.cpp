@@ -87,7 +87,6 @@ int main(int argc, char *argv[])
 	lspmemdir("/mnt/pmemdir/");
     srand((unsigned)time(NULL));
 
-	ull rdsize = sizeof(rd_addr) + sizeof(rd_sz); 
 	test();
 
 	return 0;

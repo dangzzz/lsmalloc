@@ -210,7 +210,6 @@ imalloct(size_t size, arena_t *arena, void **ptr)
 		return (arena_malloc(arena, size, false, ptr));
 	else
 		return (huge_malloc(size));
-		;
 }
 
 LSMALLOC_ALWAYS_INLINE void *
@@ -231,7 +230,6 @@ idalloct(void *ptr)
 		arena_dalloc(chunk,ptr);
 	else
 		huge_dalloc(ptr);
-		;
 }
 
 

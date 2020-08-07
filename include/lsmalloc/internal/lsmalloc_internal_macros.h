@@ -30,11 +30,9 @@
 
 #endif
 
-#ifdef LSMALLOC_CC_SILENCE
+
 #  define UNUSED LSMALLOC_ATTR(unused)
-#else
-#  define UNUSED
-#endif
+
 
 #define	ZU(z)	((size_t)z)
 #define	QU(q)	((uint64_t)q)
