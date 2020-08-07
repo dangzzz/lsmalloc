@@ -41,7 +41,7 @@ bool huge_boot()
 }
 
 
-void * huge_alloc(size_t size)
+void * huge_malloc(size_t size)
 {
 	void * ret, *addr;
 	char str[32];

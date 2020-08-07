@@ -115,7 +115,7 @@
 /******************************************************************************/
 #define	LSMALLOC_H_EXTERNS
 
-extern __thread unsigned short lid;  
+//extern __thread unsigned short lid;  
 
 /* Number of CPUs. */
 extern unsigned		ncpus;
@@ -209,7 +209,7 @@ imalloct(size_t size, arena_t *arena, void **ptr)
 	if(size<=arena_maxlarge)
 		return (arena_malloc(arena, size, false, ptr));
 	else
-		//return (huge_malloc(size));
+		return (huge_malloc(size));
 		;
 }
 
@@ -230,7 +230,7 @@ idalloct(void *ptr)
 	if(chunk!=ptr)
 		arena_dalloc(chunk,ptr);
 	else
-		//huge_dalloc(ptr);
+		huge_dalloc(ptr);
 		;
 }
 

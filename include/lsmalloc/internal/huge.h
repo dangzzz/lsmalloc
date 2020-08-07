@@ -27,7 +27,9 @@ typedef rb_tree(huge_t) huge_tree_t;
 /******************************************************************************/
 #ifdef LSMALLOC_H_EXTERNS
 
-rb_proto(, huge_tree_, huge_tree_t, huge_t)
+//rb_proto(, huge_tree_, huge_tree_t, huge_t)
+void * huge_malloc(size_t size);
+void huge_dalloc(void * ptr);
 
 #endif /* LSMALLOC_H_EXTERNS */
 /******************************************************************************/
