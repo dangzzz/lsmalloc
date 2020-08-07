@@ -5,7 +5,7 @@
 #include <random>
 #include <string.h>
 #include <iostream>
-#include "lsmalloc/lsmalloc.h"
+#include "jemalloc/jemalloc.h"
 #include <sys/time.h>
 using namespace std;
 
@@ -35,7 +35,7 @@ ull alloc_sz; //total memory we have allocated(include freed)
 /*allocate one object, size=sz*/
 void malloc_one(ull sz)
 {
-	rd_addr[alloc_object_num] = lsmalloc(sz,&(rd_addr[alloc_object_num]));
+	rd_addr[alloc_object_num] = yesmalloc(sz);
 	memset(rd_addr[alloc_object_num], -1, sz);
 	rd_sz[alloc_object_num] = sz;
 	alloc_object_num++;
@@ -84,9 +84,7 @@ void test()
 
 int main(int argc, char *argv[])
 {	
-	lspmemdir("/mnt/pmemdir/");
     srand((unsigned)time(NULL));
-
 	struct timeval start,end;  
 	gettimeofday(&start, NULL );  
 	//…calculating…  
@@ -97,6 +95,7 @@ int main(int argc, char *argv[])
 	gettimeofday(&end, NULL );  
 	long timeuse =1000000 * ( end.tv_sec - start.tv_sec ) + end.tv_usec - start.tv_usec;  
 	printf("time=%f\n",timeuse /1000000.0);  
+
 	
 
 	return 0;

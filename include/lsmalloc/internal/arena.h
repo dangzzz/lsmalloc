@@ -11,6 +11,7 @@ typedef struct chunk_s chunk_t;
 typedef struct region_s region_t;
 typedef struct pregion_s pregion_t;
 typedef struct pchunk_s pchunk_t;
+typedef struct slab_s slab_t;
 #endif /* LSMALLOC_H_TYPES */
 /******************************************************************************/
 #ifdef LSMALLOC_H_STRUCTS
@@ -23,6 +24,11 @@ struct pregion_s{
 struct pchunk_s{
 	chunk_t		*chunk;
 };
+
+struct slab_s{
+	region_t  			header;
+	
+}
 
 struct region_s{
 	ql_elm(region_t)	regions_link;
