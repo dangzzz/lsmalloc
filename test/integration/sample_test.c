@@ -5,7 +5,7 @@
 int main(){
     printf("hello world!");
 
-    lspmemdir("path to pmem");
+    lspmemdir("/mnt/pmemdir/");
     void *ptr = lsmalloc(150,&ptr);
 
 }

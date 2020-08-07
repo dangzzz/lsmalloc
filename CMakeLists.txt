@@ -29,16 +29,25 @@ set_target_properties(lsmalloc_static PROPERTIES OUTPUT_NAME "lsmalloc")
 #warning一下hpy
 message(AUTHOR_WARNING "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n目前生成的Makefile功能是把src目录下的所有源文件编译打包成一个静态库放在lib文件夹下.\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
-
-add_executable(sample_test ${CMAKE_CURRENT_LIST_DIR}/test/integration/sample_test.c)
-target_compile_options(sample_test PRIVATE -std=gnu99 -g3 -Wall -O0 -D_GNU_SOURCE -D_REENTRANT)
-target_link_libraries(sample_test lsmalloc_static)
-
-add_executable(nofree ${CMAKE_CURRENT_LIST_DIR}/test/integration/nofree.cpp)
-target_compile_options(nofree PRIVATE -std=c++11 -g3 -Wall -O0 -D_GNU_SOURCE -D_REENTRANT)
-target_link_libraries(nofree lsmalloc_static)
-
-
+#下面是测试的自动生成
 enable_testing()
-add_test(sample_test ${EXECUTABLE_OUTPUT_PATH}/sample_test)
-add_test(nofree ${EXECUTABLE_OUTPUT_PATH}/nofree 2)
+
+#只需要在下面一行加入你测试文件的文件名就可以了,测试文件要放在test/integration/
+set(testsource sample_test.c nofree_test.cpp)
+
+list(LENGTH testsource testsourcelength)
+math(EXPR testsourcelength "${testsourcelength}-1")
+
+foreach(i  RANGE ${testsourcelength})
+list(GET testsource ${i} testsourcename)
+string(REGEX REPLACE "\.cpp|\.c" "" testname ${testsourcename})
+message("-- add test ${testname}")
+add_executable(${testname} ${CMAKE_CURRENT_LIST_DIR}/test/integration/${testsourcename})
+target_compile_options(${testname} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-std=c++11> $<$<COMPILE_LANGUAGE:C>:-std=gnu99> -g3 -Wall -O0 -D_GNU_SOURCE -D_REENTRANT)
+target_link_libraries(${testname} lsmalloc_static)
+add_test(${testname} ${EXECUTABLE_OUTPUT_PATH}/${testname})
+endforeach(i)
+
+
+
+
