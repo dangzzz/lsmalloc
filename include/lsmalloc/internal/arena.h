@@ -9,26 +9,14 @@
 typedef struct arena_s arena_t;
 typedef struct chunk_s chunk_t;
 typedef struct region_s region_t;
-typedef struct pregion_s pregion_t;
-typedef struct pchunk_s pchunk_t;
-typedef struct slab_s slab_t;
+
+
 #endif /* LSMALLOC_H_TYPES */
 /******************************************************************************/
 #ifdef LSMALLOC_H_STRUCTS
 
 
-struct pregion_s{
-	region_t	*region;
-};
 
-struct pchunk_s{
-	chunk_t		*chunk;
-};
-
-struct slab_s{
-	region_t  			header;
-	
-}
 
 struct region_s{
 	ql_elm(region_t)	regions_link;
@@ -37,7 +25,6 @@ struct region_s{
 	unsigned short		threadid;
 	size_t				size;
 	void **				ptr;
-	void*				paddr;
 	chunk_t				*chunk;
 };
 
@@ -48,8 +35,6 @@ struct chunk_s{
 	arena_t					*arena;
 
 	void					*tail;
-
-	void					*paddr;
 
 	ql_elm(chunk_t)	avail_link;
 
@@ -121,6 +106,7 @@ arena_malloc(arena_t *arena, size_t size, bool zero, void **ptr)
 LSMALLOC_ALWAYS_INLINE void 
 arena_dalloc(chunk_t *chunk,void* ptr)
 {
+	/*
 	if(chunk->chunktype == CHUNK_TYPE_LOG){
 		region_t *region;
 		region = ((pregion_t *)((intptr_t)ptr-sizeof(pregion_t)))->region;
@@ -128,7 +114,7 @@ arena_dalloc(chunk_t *chunk,void* ptr)
 	}else if(chunk->chunktype == CHUNK_TYPE_SLAB){
 
 	}
-
+	*/
 }
 #endif /* LSMALLOC_H_INLINES */
 /******************************************************************************/

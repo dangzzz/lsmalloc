@@ -20,7 +20,7 @@ aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/src lsmalloc_src)
 add_library(lsmalloc_static STATIC ${lsmalloc_src})
 
 #为lsmalloc_static添加编译器flag
-target_compile_options(lsmalloc_static PRIVATE -std=gnu99 -g3 -Wall -pipe -funroll-loops -O0 -D_GNU_SOURCE -D_REENTRANT)
+target_compile_options(lsmalloc_static PRIVATE -std=gnu99 -g3 -Wall -pipe -funroll-loops -O3 -D_GNU_SOURCE -D_REENTRANT)
 target_link_libraries(lsmalloc_static pthread)
 target_link_libraries(lsmalloc_static pmem)
 #设置lsmalloc_static输出时叫lsmalloc

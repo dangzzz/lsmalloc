@@ -33,24 +33,15 @@ arena_chunk_alloc_pmem(pmempool_t *pp){
     return pmempool_chunk_alloc(pp);
 }
 
-static inline void *
-arena_chunk_alloc_vmem(){
-    return  malloc(sizeof(chunk_t));
-}
 
 static chunk_t *
 arena_chunk_alloc(arena_t *arena){
-    void *addr;
-    addr = arena_chunk_alloc_pmem(&arena->pool);
+    chunk_t * chunk = arena_chunk_alloc_pmem(&arena->pool);
 
-    chunk_t * chunk;
-    chunk = arena_chunk_alloc_vmem();
-    chunk->paddr = addr;
-    ((pchunk_t *)(chunk->paddr))->chunk= chunk;
-    chunk->tail = (void*)(((intptr_t)addr)+sizeof(pchunk_t));
+    chunk->tail = (void*)(((intptr_t)chunk)+sizeof(chunk_t));
     chunk->arena = arena;
     ql_new(&chunk->regions);
-    chunk->availsize = chunksize-sizeof(pchunk_t);
+    chunk->availsize = chunksize-sizeof(chunk_t);
     chunk->chunktype = CHUNK_TYPE_LOG;
 
     ql_elm_new(chunk,avail_link);
@@ -97,13 +88,12 @@ static void *
 arena_region_alloc(arena_t *arena,size_t size, bool zero, void **ptr)
 {
     chunk_t *chunk;
-    region_t *region = (region_t *)malloc(sizeof(region_t));
+    
     chunk=ql_first(&arena->avail_chunks);
     if(chunk == NULL||chunk->availsize<size){
         chunk = arena_chunk_alloc(arena);
     }
-    region->paddr = arena_pmem_append_region(arena,chunk,size);
-    ((pregion_t *)(region->paddr))->region = region;
+    region_t *region = arena_pmem_append_region(arena,chunk,size);
     region->ptr = ptr;
     region->size = size;
     region->threadid = *lid_tsd_get();
@@ -112,7 +102,7 @@ arena_region_alloc(arena_t *arena,size_t size, bool zero, void **ptr)
     ql_tail_insert(&chunk->regions,region,regions_link);
     region->chunk = chunk;
  
-    return (void*)((intptr_t)(region->paddr)+sizeof(pregion_t));
+    return (void*)((intptr_t)(region)+sizeof(region_t));
 }
 
 void * 
@@ -123,7 +113,7 @@ arena_malloc_large(arena_t *arena,size_t size, bool zero, void **ptr)
     malloc_mutex_lock(&arena->lock);
 
     /* 分配的大小对齐到8字节 */
-    size += sizeof(pregion_t);
+    size += sizeof(region_t);
 	size = ALIGNMENT_CEILING(size, sizeof(long long));
     
     ret = arena_region_alloc(arena,size,zero,ptr);
