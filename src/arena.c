@@ -35,7 +35,7 @@ arena_chunk_alloc_pmem(pmempool_t *pp){
 
 static inline void *
 arena_chunk_alloc_vmem(){
-    return  malloc(sizeof(chunk_t));
+    return  base_alloc(sizeof(chunk_t));
 }
 
 static chunk_t *
@@ -97,7 +97,7 @@ static void *
 arena_region_alloc(arena_t *arena,size_t size, bool zero, void **ptr)
 {
     chunk_t *chunk;
-    region_t *region = (region_t *)malloc(sizeof(region_t));
+    region_t *region = (region_t *)base_alloc(sizeof(region_t));
     chunk=ql_first(&arena->avail_chunks);
     if(chunk == NULL||chunk->availsize<size){
         chunk = arena_chunk_alloc(arena);

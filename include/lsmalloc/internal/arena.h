@@ -26,9 +26,9 @@ struct pchunk_s{
 };
 
 struct slab_s{
-	region_t  			header;
+
 	
-}
+};
 
 struct region_s{
 	ql_elm(region_t)	regions_link;
