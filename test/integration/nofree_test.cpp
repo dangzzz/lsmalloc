@@ -17,7 +17,7 @@ std::normal_distribution<double> nor_b1(250, 50);
 
 
 
-const ull max_alloc_sz = 100ULL*1024*1024; //100MB
+const ull max_alloc_sz = 500ULL*1024*1024; //100MB
 
 
 
