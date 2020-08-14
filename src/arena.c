@@ -117,7 +117,7 @@ arena_region_alloc(arena_t *arena,size_t size, bool zero, void **ptr)
     chunk_t *chunk;
     region_t *region = (region_t *)malloc(sizeof(region_t));
     chunk=ql_first(&arena->avail_chunks);
-    if(chunk == NULL||chunk->availsize<size){
+    if(chunk == NULL||chunk->availsize<size||chunk->chunktype!=CHUNK_TYPE_LOG){
         chunk = arena_chunk_alloc(arena, CHUNK_TYPE_LOG);
     }
     region->paddr = arena_pmem_append_region(arena,chunk,size);
@@ -186,7 +186,7 @@ arena_malloc_small_hard(arena_t *arena,size_t size, bool zero, void **ptr, unsig
     sregion_t *sregion = (sregion_t *)malloc(sizeof(sregion_t));
     void * ret;
 
-    if(chunk == NULL||chunk->availsize < sregion_size){
+    if(chunk == NULL||chunk->availsize < sregion_size||chunk->chunktype!=CHUNK_TYPE_SLAB){
         chunk = arena_chunk_alloc(arena, CHUNK_TYPE_SLAB);
     }
 
