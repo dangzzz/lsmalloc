@@ -15,6 +15,7 @@ typedef struct pregion_s pregion_t;
 typedef struct pchunk_s pchunk_t;
 typedef struct sregion_s sregion_t;
 typedef struct psregion_s psregion_t;
+typedef struct pslab_s pslab_t;
 
 #endif /* LSMALLOC_H_TYPES */
 /******************************************************************************/
@@ -29,7 +30,6 @@ struct pregion_s{
 struct pchunk_s{
 	chunk_t		*chunk;
 };
-
 
 
 struct region_s{
@@ -72,25 +72,25 @@ struct sregion_s
 
 	/*现在分配到的位置尾指针*/
 	void * ptail; 
-}
+};
 
 /*pmem中的sregion头部，存放一个指向dram中元数据的指针*/
 struct psregion_s
 {
-	sregion_s * sregion;
-}
+	sregion_t * sregion;
+};
 
 /*slab的元数据，暂定和pmem中用户数据放在一起，不然指针空间开销太大了*/
 /*总大小：9B*/
 /*暂时并不需要将slab关联到region*/
-struct pslab
+struct pslab_s
 {
 	/*用户提供的*/
 	void ** ptr;
 
 	/*记录dirty or not*/
 	char attr;
-}
+};
 
 struct arena_s {
 
@@ -138,6 +138,8 @@ void	arena_boot(void);
 bool	arena_new(arena_t *arena, unsigned ind);
 void	*arena_malloc_large(arena_t *arena,size_t size, bool zero, void **ptr);
 void	arena_dalloc_large(arena_t *arena,chunk_t *chunk,region_t *region);
+void	*arena_malloc_small(arena_t *arena,size_t size, bool zero, void **ptr);
+void	arena_dalloc_small(pslab_t * slab);
 #endif /* LSMALLOC_H_EXTERNS */
 /******************************************************************************/
 #ifdef LSMALLOC_H_INLINES

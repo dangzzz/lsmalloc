@@ -63,6 +63,7 @@ arena_chunk_alloc(arena_t *arena, char chunktype){
     }
     else  //插入尾部
     {
+        ql_elm_new(chunk,avail_link);
         ql_tail_insert(&arena->avail_chunks,chunk,avail_link);
     }
 
@@ -87,7 +88,7 @@ arena_new(arena_t *arena, unsigned ind)
     int i;
     for (i = 0; i < CLASS_NUM; i = i+1)
     {
-        avail_sregion[i] = NULL;
+        arena->avail_sregion[i] = NULL;
     }
     return false;
 }
@@ -117,7 +118,7 @@ arena_region_alloc(arena_t *arena,size_t size, bool zero, void **ptr)
     region_t *region = (region_t *)malloc(sizeof(region_t));
     chunk=ql_first(&arena->avail_chunks);
     if(chunk == NULL||chunk->availsize<size){
-        chunk = arena_chunk_alloc(arena);
+        chunk = arena_chunk_alloc(arena, CHUNK_TYPE_LOG);
     }
     region->paddr = arena_pmem_append_region(arena,chunk,size);
     ((pregion_t *)(region->paddr))->region = region;
@@ -135,6 +136,8 @@ arena_region_alloc(arena_t *arena,size_t size, bool zero, void **ptr)
 void * 
 arena_malloc_large(arena_t *arena,size_t size, bool zero, void **ptr)
 {
+ //   printf("large\n");
+ 
     void        *ret;
 
     malloc_mutex_lock(&arena->lock);
@@ -173,54 +176,69 @@ arena_dalloc_large(arena_t *arena,chunk_t *chunk,region_t *region)
 
 
 void *
-arena_malloc_small_hard(arena_t *arena,size_t size, bool zero, void **ptr)
+arena_malloc_small_hard(arena_t *arena,size_t size, bool zero, void **ptr, unsigned short cls)
 {
-    chunk_t *chunk = ql_last(&arena->avail_chunks);
+ //   printf("small hard\n");
+
+    chunk_t *chunk = ql_last(&arena->avail_chunks, avail_link); //从尾部取
+
+    //chunk_t *chunk = ql_first(&arena->avail_chunks); 
     sregion_t *sregion = (sregion_t *)malloc(sizeof(sregion_t));
     void * ret;
 
     if(chunk == NULL||chunk->availsize < sregion_size){
-        chunk = arena_chunk_alloc(arena);
+        chunk = arena_chunk_alloc(arena, CHUNK_TYPE_SLAB);
     }
 
-    unsigned short cls = size_to_class(size);
     sregion->paddr = chunk->tail;
     chunk->tail = (void*)((uintptr_t)chunk->tail + sregion_size);
+    chunk->availsize -= sregion_size;
+
     ((psregion_t *)(sregion->paddr))->sregion = sregion;
-    ret = (void*)((uintptr_t)sregion->paddr + sizeof(psregion_t));
-    sregion->ptr = ptr;
+    void * tail = (void*)((uintptr_t)sregion->paddr + sizeof(psregion_t));
+    ret = (void *)((uintptr_t)tail+sizeof(pslab_t));
+
     sregion->size = size;
     sregion->ptail = (void *)((uintptr_t)ret + size);
     arena->avail_sregion[cls] = sregion;
  
+    ((pslab_t *)tail)->ptr = ptr;
+    ((pslab_t *)tail)->attr = 'c';
+
     return ret;
 }
 
 void *
-arena_malloc_small_easy(arena_t *arena,size_t size, bool zero, void **ptr)
+arena_malloc_small_easy
+(arena_t *arena,size_t size, bool zero, void **ptr, sregion_t * sregion, unsigned short cls)
 {
+  // printf("small easy\n");
+
     void * ret;
-    sregion_t * sregion = arena->sregion[cls];
     assert(sregion != NULL);
     
     void * tail = (void *)((uintptr_t)sregion->ptail+sizeof(pslab_t)+size);
     if ((uintptr_t)tail > (uintptr_t)sregion->paddr+sregion_size)
     {
-        return arena_malloc_small_hard(arena, size, zero, ptr);
+        return arena_malloc_small_hard(arena, size, zero, ptr, cls);
     }
     else
     {
         void *tail = sregion->ptail;
         ret = (void *)((uintptr_t)tail+sizeof(pslab_t));
 
-        (pslab_t *)tail->ptr = ptr;
-        (pslab_t *)tail->attr = 'c';
+        ((pslab_t *)tail)->ptr = ptr;
+        ((pslab_t *)tail)->attr = 'c';
         sregion->ptail = (void *)((uintptr_t)ret+size);
 
         return ret;
     }   
 }
 
+/*
+分配时，先看arena->sregion_avail[size]。如果这个能分配则直接分配；如果不能，则hard分配
+hard分配：需要分配一个新的sregion
+*/
 void * 
 arena_malloc_small(arena_t *arena,size_t size, bool zero, void **ptr)
 {
@@ -228,24 +246,28 @@ arena_malloc_small(arena_t *arena,size_t size, bool zero, void **ptr)
 
     malloc_mutex_lock(&arena->lock);
 
-    /* 分配的大小对齐到8字节 */
-    //TODO：size_to_class
     unsigned short cls = size_to_class(size);
-    size = small_size[cls];
-    if (arena->avail_sregion[cls] != NULL)
+    size = class_to_size(cls);
+    sregion_t * sregion = arena->avail_sregion[cls];
+    if (sregion != NULL)
     {
-        arena_malloc_small_easy(arena, size, zero, ptr);
+        ret = arena_malloc_small_easy(arena, size, zero, ptr, sregion, cls);
     }
     else
     {
-        arena_malloc_small_hard(arena, size, zero, ptr);
+        ret = arena_malloc_small_hard(arena, size, zero, ptr, cls);
     }
     
     malloc_mutex_unlock(&arena->lock);
     return ret;
 }
 
-
+/*
+free时直接标为dirty
+gc时，如果要copy转移某个slab，需要在新chunk里为它分配一个新的sregion
+gc时，需要顺次扫描arena中记录的chunk链表，每个chunk顺次扫描sregion，每个sregion顺次扫描slab
+*/
+//TODO: 加锁。如果需要arena锁，slab要增加指向sregion的索引，sregion要增加指向chunk的索引
 void 
 arena_dalloc_small(pslab_t * slab)
 {

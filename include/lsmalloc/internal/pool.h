@@ -2,7 +2,7 @@
 #ifdef LSMALLOC_H_TYPES
 
 #define PMEMPOOL_SIZE 800*1024*1024 
-//#define freelist_len (PMEMPOOL_SIZE/(1<<22))
+
 typedef struct pmempool_s pmempool_t;
 typedef struct freelist_s freelist_t;
 typedef struct filelist_s filelist_t;
