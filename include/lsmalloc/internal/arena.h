@@ -5,12 +5,16 @@
 #define REGION_DIRTY (unsigned short)0x2U;
 #define CHUNK_TYPE_SLAB	's'
 #define CHUNK_TYPE_LOG	'l'
+#define SLAB_DIRTY 'd'
+#define SLAB_CLEAN 'c'
 
 typedef struct arena_s arena_t;
 typedef struct chunk_s chunk_t;
 typedef struct region_s region_t;
 typedef struct pregion_s pregion_t;
 typedef struct pchunk_s pchunk_t;
+typedef struct sregion_s sregion_t;
+typedef struct psregion_s psregion_t;
 
 #endif /* LSMALLOC_H_TYPES */
 /******************************************************************************/
@@ -21,6 +25,7 @@ struct pregion_s{
 	region_t	*region;
 };
 
+/*schunk和lchunk都使用这个*/
 struct pchunk_s{
 	chunk_t		*chunk;
 };
@@ -38,24 +43,54 @@ struct region_s{
 	chunk_t				*chunk;
 };
 
+/*两个类型的chunk共用*/
 struct chunk_s{
+	char				chunktype;   //
 
 	ql_head(region_t) 	regions;
 
-	arena_t					*arena;
+	arena_t					*arena;   //
 
-	void					*tail;
+	void					*tail;    //
 
-	void					*paddr;
+	void					*paddr;    //
 
-	ql_elm(chunk_t)	avail_link;
+	ql_elm(chunk_t)	avail_link;	 //
 
-	size_t				availsize;
-
-	char				chunktype;
+	size_t				availsize;    //
 };
 
+/*以下是small数据的数据结构*/
+/*暂时并不需要将sregion关联到chunk*/
+struct sregion_s
+{
+	/*内部slab的size*/
+	size_t size;
 
+	/*pmem中数据区域的起始地址*/
+	void * paddr; 
+
+	/*现在分配到的位置尾指针*/
+	void * ptail; 
+}
+
+/*pmem中的sregion头部，存放一个指向dram中元数据的指针*/
+struct psregion_s
+{
+	sregion_s * sregion;
+}
+
+/*slab的元数据，暂定和pmem中用户数据放在一起，不然指针空间开销太大了*/
+/*总大小：9B*/
+/*暂时并不需要将slab关联到region*/
+struct pslab
+{
+	/*用户提供的*/
+	void ** ptr;
+
+	/*记录dirty or not*/
+	char attr;
+}
 
 struct arena_s {
 
@@ -81,9 +116,16 @@ struct arena_s {
 
 	pmempool_t				pool;
 
+	/*
+	暂时：已分配的schunk的链表也插入到这个链表中，从尾部插入。
+	*/
 	ql_head(chunk_t) 	avail_chunks;
 
 	chunk_t				*maxchunk;
+
+	/*对于某个size class，当前可用来分配的sregion*/
+	//TODO class_num
+	sregion_t *  avail_sregion[CLASS_NUM];
 };
 
 #endif /* LSMALLOC_H_STRUCTS */
@@ -106,9 +148,9 @@ arena_malloc(arena_t *arena, size_t size, bool zero, void **ptr)
 
 	assert(size != 0);
 
-	if(size <= arena_maxsmall){
-		return NULL;
-		//return(arena_malloc_small(choose_arena(arena), size, zero, ptr));
+	if(size < arena_maxsmall){
+		//return NULL;
+		return(arena_malloc_small(choose_arena(arena), size, zero, ptr));
 	}else{
 		return(arena_malloc_large(choose_arena(arena), size, zero, ptr));
 	}
@@ -118,12 +160,16 @@ arena_malloc(arena_t *arena, size_t size, bool zero, void **ptr)
 LSMALLOC_ALWAYS_INLINE void 
 arena_dalloc(chunk_t *chunk,void* ptr)
 {
-	if(chunk->chunktype == CHUNK_TYPE_LOG){
+	if(chunk->chunktype == CHUNK_TYPE_LOG)
+	{
 		region_t *region;
 		region = ((pregion_t *)((intptr_t)ptr-sizeof(pregion_t)))->region;
 		arena_dalloc_large(chunk->arena,chunk,region);
-	}else if(chunk->chunktype == CHUNK_TYPE_SLAB){
-
+	}else if(chunk->chunktype == CHUNK_TYPE_SLAB)
+	{
+		pslab_t * slab;
+		slab = (pslab_t *)((intptr_t)ptr-sizeof(pslab_t));
+		arena_dalloc_small(slab);
 	}
 
 }

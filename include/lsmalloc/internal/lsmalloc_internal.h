@@ -96,6 +96,7 @@
 #include "lsmalloc/internal/arena.h"
 #include "lsmalloc/internal/chunk.h"
 #include "lsmalloc/internal/base.h"
+#include "lsmalloc/internal/slab.h"
 
 
 #undef LSMALLOC_H_TYPES
@@ -110,6 +111,7 @@
 #include "lsmalloc/internal/arena.h"
 #include "lsmalloc/internal/chunk.h"
 #include "lsmalloc/internal/base.h"
+#include "lsmalloc/internal/slab.h"
 
 #undef LSMALLOC_H_STRUCTS
 /******************************************************************************/
@@ -144,6 +146,7 @@ extern char * pmem_path;
 #include "lsmalloc/internal/arena.h"
 #include "lsmalloc/internal/chunk.h"
 #include "lsmalloc/internal/base.h"
+#include "lsmalloc/internal/slab.h"
 
 #undef LSMALLOC_H_EXTERNS
 /******************************************************************************/
@@ -157,6 +160,7 @@ extern char * pmem_path;
 #include "lsmalloc/internal/huge.h"
 #include "lsmalloc/internal/chunk.h"
 #include "lsmalloc/internal/base.h"
+#include "lsmalloc/internal/slab.h"
 
 #ifndef LSMALLOC_ENABLE_INLINE
 malloc_tsd_protos(LSMALLOC_ATTR(unused), arenas, arena_t *)

@@ -18,9 +18,8 @@ unsigned		narenas_total;
 unsigned		narenas_auto;
 
 /*用于更新lid*/
+//TODO：每个线程初始化lid_tsd_set还没写
 static unsigned short lthread_cnt = 0;
-/*每个线程拥有不同的lid，用于标识线程*/
-//__thread unsigned short lid = 0;  
 
 /* Set to true once the allocator has been initialized. */
 static bool		malloc_initialized = false;
