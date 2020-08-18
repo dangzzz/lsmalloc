@@ -47,13 +47,13 @@ void pmempool_create_one(pmempool_t * pp)
 	else{
 		pmem_unmap(addr,size);
 		remove(str);
-		if((addr=pmem_map_file(str,2*size,PMEM_FILE_CREATE,0666,&mapped_len, &is_pmem))==NULL){
+		if((addr=pmem_map_file(str,size+chunksize,PMEM_FILE_CREATE,0666,&mapped_len, &is_pmem))==NULL){
 			perror("pmem_map_file");
 			exit(1);
 		}
 		ret = (void*)ALIGNMENT_CEILING((uintptr_t)addr,alignment);
 		pmem_unmap(addr,((intptr_t)ret-(intptr_t)addr));
-		pmem_unmap((void*)((intptr_t)ret+size),((intptr_t)addr+size-(intptr_t)ret));
+		pmem_unmap((void*)((intptr_t)ret+size),((intptr_t)addr+chunksize-(intptr_t)ret));
 	}
 	
 	pmem_consmp += size; 
