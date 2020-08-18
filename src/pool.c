@@ -33,7 +33,7 @@ void pmempool_create_one(pmempool_t * pp)
 	size_t alignment = chunksize;  
 
 	//sprintf(str,"%s/%d", pmem_path, ++mmap_file);
-	sprintf(str,"/mnt/pmem/%d", ++mmap_file);
+	sprintf(str,"/mnt/pmem/lspmemfile%d", ++mmap_file);
 
 	if((addr=pmem_map_file(str,size,PMEM_FILE_CREATE,0666,&mapped_len, &is_pmem))==NULL){
 		perror("pmem_map_file");
@@ -101,7 +101,7 @@ void pmempool_destroy(pmempool_t * pp)
 	while (tmp->file_no != 0)
 	{
 		//sprintf(str,"%s/%d", pmem_path, pp->file->file_no);
-		sprintf(str,"/mnt/pmem/%d", pp->file->file_no);
+		sprintf(str,"/mnt/pmem/lspmemfile%d", pp->file->file_no);
 		pmem_unmap(pp->file->pool_paddr, PMEMPOOL_SIZE);
 		pmem_consmp -= PMEMPOOL_SIZE;
 		remove(str);

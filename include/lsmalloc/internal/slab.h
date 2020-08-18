@@ -1,5 +1,4 @@
 #ifdef LSMALLOC_H_TYPES
-#include "lsmalloc/internal/lsmalloc_internal.h"
 
 //暂定
 #define sregion_size 1024
