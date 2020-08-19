@@ -39,10 +39,10 @@ struct pmempool_s
 	freelist_t *fl_now;
 
 	/*pool中的chunk总数*/
-	int chunk_tot = 0;  
+	int chunk_tot;  
 
 	/*已分配出去的chunk总数*/
-	int chunk_used = 0;  
+	int chunk_used;
 };
 
 #endif /* LSMALLOC_H_STRUCTS */
