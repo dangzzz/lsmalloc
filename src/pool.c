@@ -90,8 +90,8 @@ void pmempool_create(pmempool_t * pp)
 	pp->file->file_no = 0;
 	qr_new(pp->file, link);
 	
-	chunk_tot = 0;  
-	chunk_used = 0;
+	pp->chunk_tot = 0;  
+	pp->chunk_used = 0;
 	
 	pmempool_create_one(pp);
 }
