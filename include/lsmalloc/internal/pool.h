@@ -46,6 +46,7 @@ void pmempool_create(pmempool_t * pp);
 void pmempool_destroy(pmempool_t * pp);
 void * pmempool_chunk_alloc(pmempool_t * pp);
 void pmempool_free(pmempool_t * pp, void * ptr);
+int pmempool_usedpct();
 
 #endif /* LSMALLOC_H_EXTERNS */
 /******************************************************************************/
