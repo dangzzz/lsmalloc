@@ -89,6 +89,10 @@ void pmempool_create(pmempool_t * pp)
 	pp->file = (filelist_t *)malloc(sizeof(filelist_t));
 	pp->file->file_no = 0;
 	qr_new(pp->file, link);
+	
+	chunk_tot = 0;  
+	chunk_used = 0;
+	
 	pmempool_create_one(pp);
 }
 
