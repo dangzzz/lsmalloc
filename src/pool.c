@@ -6,8 +6,6 @@
 unsigned int mmap_file = 0; 
 unsigned int pmem_consmp = 0;
 char * pmem_path;
-int chunk_tot = 0;  //pool中的chunk总数
-int chunk_used = 0;  //已分配出去的chunk总数
 
 /******************************************************************************/
 /*
@@ -70,7 +68,7 @@ void pmempool_create_one(pmempool_t * pp)
 
 	/*初始化双向链表freelist*/
 	int freelist_len = PMEMPOOL_SIZE/chunksize;
-	chunk_tot += freelist_len;
+	pp->chunk_tot += freelist_len;
 	freelist_t * pre = pp->fl_now;
 	freelist_t * tmp;
 	for (int i = 0; i < freelist_len; i++){
@@ -129,7 +127,7 @@ void * pmempool_chunk_alloc(pmempool_t * pp)
 	void * ret = tmp->paddr;
 	pp->fl_now = qr_next(pp->fl_now, link);
 	qr_remove(tmp, link);
-	chunk_used += 1;
+	pp->chunk_used += 1;
 
 	return ret;
 }
@@ -141,10 +139,10 @@ void pmempool_free(pmempool_t * pp, void * ptr)
 	tmp->paddr = ptr;
 	qr_new(tmp, link);
 	qr_before_insert(pp->fl_now, tmp, link);
-	chunk_used -= 1;
+	pp->chunk_used -= 1;
 }
 
-int pmempool_usedpct()
+int pmempool_usedpct(pmempool_t * pp)
 {
-	return chunk_used/chunk_tot;
+	return pp->chunk_used/pp->chunk_tot;
 }
