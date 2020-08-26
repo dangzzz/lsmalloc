@@ -40,7 +40,7 @@ void malloc_one(ull sz)
 	rd_sz[alloc_object_num] = sz;
 	alloc_object_num++;
 	alloc_sz += sz;
-	printf("malloc one success\n");
+	//printf("malloc one success\n");
 }
 
 

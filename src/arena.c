@@ -61,10 +61,10 @@ arena_chunk_alloc(arena_t *arena, char chunktype){
         ql_elm_new(chunk,avail_link);
         ql_head_insert(&arena->avail_chunks,chunk,avail_link);
     }
-    else  //插入尾部
+    else 
     {
         ql_elm_new(chunk,avail_link);
-        ql_tail_insert(&arena->avail_chunks,chunk,avail_link);
+        ql_head_insert(&arena->avail_schunks,chunk,avail_link);
     }
 
     return chunk;
@@ -84,6 +84,7 @@ arena_new(arena_t *arena, unsigned ind)
     pmempool_create(&arena->pool);
 
     ql_new(&arena->avail_chunks);
+    ql_new(&arena->avail_schunks);
 
     int i;
     for (i = 0; i < CLASS_NUM; i = i+1)
@@ -180,7 +181,7 @@ arena_malloc_small_hard(arena_t *arena,size_t size, bool zero, void **ptr, unsig
 {
  //   printf("small hard\n");
 
-    chunk_t *chunk = ql_last(&arena->avail_chunks, avail_link); //从尾部取
+    chunk_t *chunk = ql_first(&arena->avail_schunks); 
 
     //chunk_t *chunk = ql_first(&arena->avail_chunks); 
     sregion_t *sregion = (sregion_t *)malloc(sizeof(sregion_t));

@@ -116,10 +116,11 @@ struct arena_s {
 
 	pmempool_t				pool;
 
-	/*
-	暂时：已分配的schunk的链表也插入到这个链表中，从尾部插入。
-	*/
+
 	ql_head(chunk_t) 	avail_chunks;
+	
+	/*已分配的schunk的链表插入到这个链表中*/
+	ql_head(chunk_t)  avail_schunks;
 
 	chunk_t				*maxchunk;
 
