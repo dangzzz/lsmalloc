@@ -1,10 +1,11 @@
 /******************************************************************************/
 #ifdef LSMALLOC_H_TYPES
 
-#define REGION_ALIVE (unsigned short)0x1U;
-#define REGION_DIRTY (unsigned short)0x2U;
+#define REGION_ALIVE (unsigned short)0x1U
+#define REGION_DIRTY (unsigned short)0x2U
 #define CHUNK_TYPE_SLAB	's'
 #define CHUNK_TYPE_LOG	'l'
+#define CHUNK_TYPE_GC	'g'
 #define SLAB_DIRTY 'd'
 #define SLAB_CLEAN 'c'
 
@@ -58,6 +59,16 @@ struct chunk_s{
 	ql_elm(chunk_t)	avail_link;	 //
 
 	size_t				availsize;    //
+	size_t				dirtysize;
+
+
+	malloc_mutex_t 		gc_lock;
+	malloc_mutex_t 		write_lock;
+
+	bool 				live;
+
+	bool				gcing;
+
 };
 
 /*以下是small数据的数据结构*/
@@ -126,6 +137,10 @@ struct arena_s {
 	/*对于某个size class，当前可用来分配的sregion*/
 	//TODO class_num
 	sregion_t *  avail_sregion[CLASS_NUM];
+
+	chunk_t				*gc_chunk;
+
+	malloc_mutex_t		gc_lock;
 };
 
 #endif /* LSMALLOC_H_STRUCTS */

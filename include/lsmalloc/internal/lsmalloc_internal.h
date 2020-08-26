@@ -36,6 +36,8 @@
 #include "lsmalloc/internal/rb.h"
 #include "lsmalloc/internal/qr.h"
 #include "lsmalloc/internal/ql.h"
+
+#include "threadpool.h"
 /*
  *   LSMALLOC_H_TYPES   : Preprocessor-defined constants and psuedo-opaque data
  *                        types.
@@ -97,6 +99,7 @@
 #include "lsmalloc/internal/chunk.h"
 #include "lsmalloc/internal/base.h"
 #include "lsmalloc/internal/slab.h"
+#include "lsmalloc/internal/gc.h"
 
 
 #undef LSMALLOC_H_TYPES
@@ -112,6 +115,7 @@
 #include "lsmalloc/internal/chunk.h"
 #include "lsmalloc/internal/base.h"
 #include "lsmalloc/internal/slab.h"
+#include "lsmalloc/internal/gc.h"
 
 #undef LSMALLOC_H_STRUCTS
 /******************************************************************************/
@@ -137,6 +141,8 @@ arena_t	*choose_arena_hard(void);
 
 extern char * pmem_path;
 
+extern threadpool_t *tpool;
+
 #include "lsmalloc/internal/atomic.h"
 #include "lsmalloc/internal/util.h"
 #include "lsmalloc/internal/pool.h"
@@ -147,6 +153,7 @@ extern char * pmem_path;
 #include "lsmalloc/internal/chunk.h"
 #include "lsmalloc/internal/base.h"
 #include "lsmalloc/internal/slab.h"
+#include "lsmalloc/internal/gc.h"
 
 #undef LSMALLOC_H_EXTERNS
 /******************************************************************************/
@@ -161,6 +168,7 @@ extern char * pmem_path;
 #include "lsmalloc/internal/chunk.h"
 #include "lsmalloc/internal/base.h"
 #include "lsmalloc/internal/slab.h"
+#include "lsmalloc/internal/gc.h"
 
 #ifndef LSMALLOC_ENABLE_INLINE
 malloc_tsd_protos(LSMALLOC_ATTR(unused), arenas, arena_t *)

@@ -9,6 +9,7 @@ extern "C" {
 /* sizeof(void *) == 2^LG_SIZEOF_PTR. */
 #define	LG_SIZEOF_PTR 3
 
+#define GCING_SEM   100000
 
 #ifdef LSMALLOC_HAVE_ATTR
 #  define LSMALLOC_ATTR(s) __attribute__((s))
@@ -23,6 +24,12 @@ LSMALLOC_EXPORT void lspmemdir(char * path);
 LSMALLOC_EXPORT void * lsmalloc(size_t size,void **ptr) LSMALLOC_ATTR(malloc);
 
 LSMALLOC_EXPORT void lsfree(void *ptr);
+
+LSMALLOC_EXPORT void lswrite_before(void *ptr);
+LSMALLOC_EXPORT void lswrite_after(void *ptr);
+
+
+
 #ifdef __cplusplus
 };
 #endif
