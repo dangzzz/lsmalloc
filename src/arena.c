@@ -51,12 +51,14 @@ arena_chunk_alloc(arena_t *arena, char chunktype){
     ((pchunk_t *)(chunk->paddr))->chunk= chunk;
     chunk->tail = (void*)(((intptr_t)addr)+sizeof(pchunk_t));
     chunk->arena = arena;
+    chunk->gcing =false;
     
     chunk->availsize = chunksize-sizeof(pchunk_t);
+    chunk->dirtysize = 0;
     chunk->chunktype = chunktype;
-
+    chunk->live = true;
     if (chunktype == CHUNK_TYPE_LOG)
-    {
+    {   
         ql_new(&chunk->regions);
         ql_elm_new(chunk,avail_link);
         ql_head_insert(&arena->avail_chunks,chunk,avail_link);
@@ -67,8 +69,22 @@ arena_chunk_alloc(arena_t *arena, char chunktype){
         ql_head_insert(&arena->avail_schunks,chunk,avail_link);
     }
 
+   
+
+
+    maybe_gc(arena);
+
+    malloc_mutex_init(&chunk->gc_lock);
+    malloc_mutex_init(&chunk->write_lock);
+
+   
+
+	    
+
     return chunk;
 }
+
+
 
 
 
@@ -78,9 +94,13 @@ arena_new(arena_t *arena, unsigned ind)
 
     if (malloc_mutex_init(&arena->lock))
 	    return (true);
+
+     if (malloc_mutex_init(&arena->gc_lock))
+	    return (true);
 	arena->ind = ind;
 	arena->nthreads = 0;
     arena->maxchunk = NULL;
+    arena->gc_chunk = NULL;
     pmempool_create(&arena->pool);
 
     ql_new(&arena->avail_chunks);
@@ -119,6 +139,7 @@ arena_region_alloc(arena_t *arena,size_t size, bool zero, void **ptr)
     region_t *region = (region_t *)malloc(sizeof(region_t));
     chunk=ql_first(&arena->avail_chunks);
     if(chunk == NULL||chunk->availsize<size||chunk->chunktype!=CHUNK_TYPE_LOG){
+        chunk->live = false;
         chunk = arena_chunk_alloc(arena, CHUNK_TYPE_LOG);
     }
     region->paddr = arena_pmem_append_region(arena,chunk,size);
@@ -160,6 +181,8 @@ void
 arena_dalloc_large_locked(arena_t *arena,chunk_t *chunk,region_t *region)
 {
     region->attr = REGION_DIRTY;
+    chunk->dirtysize+=region->size;
+    
 }
 
 void 

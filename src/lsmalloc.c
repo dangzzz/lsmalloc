@@ -4,6 +4,10 @@
 /******************************************************************************/
 /* Data. */
 
+#define THREAD 32
+#define QUEUE  1024
+
+
 malloc_tsd_data(, arenas, arena_t *, NULL)
 //lsmalloc.h   malloc_tsd_protos malloc_tsd_funcs
 malloc_tsd_data(, lid, unsigned short, NULL)
@@ -27,6 +31,9 @@ static bool		malloc_initialized = false;
 static malloc_mutex_t	init_lock = PTHREAD_MUTEX_INITIALIZER;
 
 extern char * pmem_path;
+
+
+threadpool_t *tpool;
 
 /******************************************************************************/
 /* Function prototypes for non-inline static functions. */
@@ -240,6 +247,9 @@ malloc_init_hard(void){
 	arenas[0] = init_arenas[0];
 
 
+	assert((tpool = threadpool_create(THREAD, QUEUE, 0)) != NULL);
+
+
 	malloc_initialized = true;
 	malloc_mutex_unlock(&init_lock);
 }
@@ -278,6 +288,21 @@ lsfree(void *ptr)
 
 	if (ptr != NULL)
 		ifree(ptr);
+}
+
+
+void lswrite_before(void *ptr){
+	chunk_t *chunk = (chunk_t *)CHUNK_ADDR2BASE(ptr);
+	malloc_mutex_lock(&chunk->write_lock);
+
+
+}
+
+
+void lswrite_after(void *ptr){
+	chunk_t *chunk = (chunk_t *)CHUNK_ADDR2BASE(ptr);
+
+	malloc_mutex_unlock(&chunk->write_lock);
 }
 
 

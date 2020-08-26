@@ -67,7 +67,8 @@ void pmempool_create_one(pmempool_t * pp)
 
 
 	/*初始化双向链表freelist*/
-	int freelist_len = PMEMPOOL_SIZE/chunksize; 
+	int freelist_len = PMEMPOOL_SIZE/chunksize;
+	pp->chunk_tot += freelist_len;
 	freelist_t * pre = pp->fl_now;
 	freelist_t * tmp;
 	for (int i = 0; i < freelist_len; i++){
@@ -88,6 +89,10 @@ void pmempool_create(pmempool_t * pp)
 	pp->file = (filelist_t *)malloc(sizeof(filelist_t));
 	pp->file->file_no = 0;
 	qr_new(pp->file, link);
+	
+	pp->chunk_tot = 0;  
+	pp->chunk_used = 0;
+	
 	pmempool_create_one(pp);
 }
 
@@ -126,6 +131,7 @@ void * pmempool_chunk_alloc(pmempool_t * pp)
 	void * ret = tmp->paddr;
 	pp->fl_now = qr_next(pp->fl_now, link);
 	qr_remove(tmp, link);
+	pp->chunk_used += 1;
 
 	return ret;
 }
@@ -137,4 +143,10 @@ void pmempool_free(pmempool_t * pp, void * ptr)
 	tmp->paddr = ptr;
 	qr_new(tmp, link);
 	qr_before_insert(pp->fl_now, tmp, link);
+	pp->chunk_used -= 1;
+}
+
+int pmempool_usedpct(pmempool_t * pp)
+{
+	return pp->chunk_used/pp->chunk_tot;
 }

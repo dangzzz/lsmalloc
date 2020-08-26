@@ -37,6 +37,12 @@ struct pmempool_s
 
 	/*当前可用于分配的内存块链表*/
 	freelist_t *fl_now;
+
+	/*pool中的chunk总数*/
+	int chunk_tot;  
+
+	/*已分配出去的chunk总数*/
+	int chunk_used;
 };
 
 #endif /* LSMALLOC_H_STRUCTS */
@@ -46,6 +52,7 @@ void pmempool_create(pmempool_t * pp);
 void pmempool_destroy(pmempool_t * pp);
 void * pmempool_chunk_alloc(pmempool_t * pp);
 void pmempool_free(pmempool_t * pp, void * ptr);
+int pmempool_usedpct(pmempool_t * pp);
 
 #endif /* LSMALLOC_H_EXTERNS */
 /******************************************************************************/

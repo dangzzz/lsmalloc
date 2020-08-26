@@ -20,7 +20,7 @@
 
 /Makefile
 
-/lib/*
+/lib/liblsmalloc.a
 /bin/*
 
 /Testing
