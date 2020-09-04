@@ -101,7 +101,7 @@ gc_region_migration(chunk_t *chunk,chunk_t *gc_chunk,region_t *oldregion)
     region->paddr = gc_pmem_append_region(gc_chunk,oldregion->size);
     ((pregion_t *)(region->paddr))->region = region;
     region->ptr = oldregion->ptr;
-    //todo replace ptr
+    *region->ptr = (void*)((intptr_t)(region->paddr)+sizeof(pregion_t));
     region->size = oldregion->size;
     region->threadid = oldregion->threadid;
     region->attr = REGION_ALIVE;
