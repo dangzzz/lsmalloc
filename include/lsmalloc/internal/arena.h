@@ -144,6 +144,9 @@ struct arena_s {
 	chunk_t				*gc_chunk;
 
 	malloc_mutex_t		gc_lock;
+	
+	unsigned int thread_count;
+	sem_t				gc_sem;
 };
 
 #endif /* LSMALLOC_H_STRUCTS */

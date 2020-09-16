@@ -110,7 +110,6 @@ gc_region_migration(chunk_t *chunk,chunk_t *gc_chunk,region_t *oldregion)
     ql_elm_new(region,regions_link);
     ql_tail_insert(&gc_chunk->regions,region,regions_link);
     region->chunk = gc_chunk;
- 
     return ;
 }
 
@@ -168,6 +167,12 @@ do_own_slowgc(void *args)
         chunk = sl_next(bchunk,avail_link);
 
     }
+
+    atomic_sub_u(&task->arena->thread_count,1);
+
+    if(atomic_read_u(&task->arena->thread_count)==0){
+        sem_post(&task->arena->gc_sem);
+    }
     
 }
 
@@ -178,6 +183,8 @@ slowgc_scheduler(void *args)
 {   
     arena_t *arena = (arena_t *) args;
     chunk_t *first_chunk = sl_first(&arena->avail_chunks);
+
+    arena->thread_count = 1;
 
     fake_chunk_t *fake_first = malloc(sizeof(fake_chunk_t));
     sl_elm_new(fake_first,avail_link);
@@ -201,8 +208,10 @@ slowgc_scheduler(void *args)
         slowgc_task_t *task = malloc(sizeof(slowgc_task_t));
         task->arena = arena;
         task->start = start_fchunk;
+        //first no nessary
         task->first = first_chunk;
 
+        atomic_add_u(&arena->thread_count,1);
         threadpool_add(tpool,&do_own_slowgc,task,0);
 
         start_fchunk = end_fchunk;
@@ -231,7 +240,13 @@ breakall:
         chunk = sl_next(chunk,avail_link);
     }
 
-    //同步
+    atomic_sub_u(arena->thread_count,1);
+
+    if(atomic_read_u(arena->thread_count)==0){
+        sem_post(&arena->gc_sem);
+    }
+
+    sem_wait(&arena->gc_sem);
     //delete fake
 
     

@@ -25,6 +25,7 @@
 #include <string.h>
 #include <strings.h>
 #include <ctype.h>
+#include <semaphore.h>
 #include "libpmem.h"
 #include <unistd.h>
 #include "lsmalloc_internal_defs.h"

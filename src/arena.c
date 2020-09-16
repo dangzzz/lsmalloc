@@ -101,6 +101,8 @@ arena_new(arena_t *arena, unsigned ind)
 	arena->nthreads = 0;
     arena->maxchunk = NULL;
     arena->gc_chunk = NULL;
+    arena->thread_count = 0;
+    sem_init(&arena->gc_sem, 0, 0);
     pmempool_create(&arena->pool);
 
     sl_new(&arena->avail_chunks);
