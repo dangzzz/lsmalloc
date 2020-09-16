@@ -4,6 +4,7 @@
 /******************************************************************************/
 /* Data. */
 #define GC_THREAD_NUM   8
+#define GC_SLOWGC_NUM_PRE_THREAD 10
 /******************************************************************************/
 /* Function prototypes for non-inline static functions. */
 
@@ -16,27 +17,29 @@
 
 
 inline void *
-arena_chunk_dalloc(arena_t *arena,chunk_t *chunk)
-{   //todo remove whether thread-safe
-    ql_remove(&arena->avail_chunks,chunk,avail_link);
+arena_chunk_dalloc(arena_t *arena,chunk_t * bchunk,chunk_t *chunk)
+{   
+    sl_after_remove(bchunk,chunk,avail_link);
     pmempool_free(&arena->pool,chunk);
 }
 
-inline void
-chunk_do_fastgc(arena_t *arena,chunk_t * chunk){
-    arena_chunk_dalloc(arena,chunk);
-}
 
 
 void 
 fastgc_scheduler(void *args)
 {   
-    chunk_t *chunk;
-    ql_foreach(chunk,&((arena_t *)args)->avail_chunks,avail_link){
+    chunk_t *bchunk,*chunk;
+    bchunk = sl_first(&((arena_t *) args )->avail_chunks);
+    chunk = sl_next(bchunk,avail_link);
+    while (chunk!=NULL){
         if((chunk->live==false)&&(chunk->chunktype==CHUNK_TYPE_LOG)&&(chunk->availsize + chunk->dirtysize == chunksize-sizeof(chunk_t))){
-            chunk_do_fastgc((arena_t *)args,chunk);
+            arena_chunk_dalloc((arena_t *) args,bchunk,chunk);
+        }else{
+            bchunk = chunk;
         }
-    }
+            
+        chunk = sl_next(bchunk,avail_link); 
+    } 
 }
 
 
@@ -49,7 +52,7 @@ fastgc(arena_t *arena)
 
 
 chunk_t *
-gc_alloc_chunk(arena_t *arena){
+gc_alloc_chunk(arena_t *arena,chunk_t *chunk_before){
     void *addr;
     addr = pmempool_chunk_alloc(&arena->pool);
 
@@ -64,7 +67,7 @@ gc_alloc_chunk(arena_t *arena){
     
     chunk->availsize = chunksize-sizeof(pchunk_t);
     chunk->dirtysize = 0;
-    chunk->chunktype = CHUNK_TYPE_GC;
+    chunk->chunktype = CHUNK_TYPE_LOG;
     chunk->live = false;
 
 
@@ -72,15 +75,13 @@ gc_alloc_chunk(arena_t *arena){
     malloc_mutex_init(&chunk->write_lock);
 
     //todo lock
-    ql_tail_insert(&arena->avail_chunks,chunk,avail_link);
-
+    sl_elm_new(chunk,avail_link);
+    sl_after_insert(chunk_before,chunk,avail_link);
     return chunk;
 
 }
 
-/* 
- * 追加数据到尾指针所指地址并移动尾指针到数据末端,返回原来尾指针的位置.
- */
+
 static inline void *
 gc_pmem_append_region(chunk_t *chunk, size_t size)
 {
@@ -95,7 +96,8 @@ gc_pmem_append_region(chunk_t *chunk, size_t size)
 
 inline void
 gc_region_migration(chunk_t *chunk,chunk_t *gc_chunk,region_t *oldregion)
-{
+{   
+    //todo region 一个一个移动开销太大,需要改一下索引方式
     region_t *region = (region_t *)malloc(sizeof(region_t));
 
     region->paddr = gc_pmem_append_region(gc_chunk,oldregion->size);
@@ -112,94 +114,127 @@ gc_region_migration(chunk_t *chunk,chunk_t *gc_chunk,region_t *oldregion)
     return ;
 }
 
-
 inline chunk_t *
-chunk_do_slowgc(arena_t *arena,chunk_t *chunk,chunk_t *gc_chunk)
-{
-    if((chunk->live==false)&&(chunk->chunktype==CHUNK_TYPE_LOG)&&(chunk->availsize + chunk->dirtysize == chunksize-sizeof(chunk_t))){
-            chunk_do_fastgc(arena,chunk);
-            return NULL;
-    }
+chunk_do_slowgc(arena_t *arena,chunk_t *chunk,chunk_t *gc_chunk,chunk_t *bchunk,chunk_t *first_chunk)
+{   
+
     chunk_t *ret = gc_chunk;
     region_t *region;
 
-    malloc_mutex_lock(&chunk->write_lock);
+    //todo write lock
 
     ql_foreach(region,&chunk->regions,regions_link){
         if(region->attr==REGION_DIRTY){
             if(gc_chunk->availsize<region->size){
-                gc_chunk = gc_alloc_chunk(arena);
+                gc_chunk = gc_alloc_chunk(arena,first_chunk);
                 ret = gc_chunk;
             }
             gc_region_migration(chunk,gc_chunk,region);
         }
     }
 
-    malloc_mutex_unlock(&chunk->write_lock);
+    //todo write lock
 
-    //todo lock
-    ql_remove(&arena->avail_chunks,chunk,avail_link);
+
 
     
 }
 
 
 
-//todo lock-free
 void
-do_slowgc(void * args)
+do_own_slowgc(void *args)
 {
-    chunk_t *chunk;
-    chunk_t *gc_chunk;
-    arena_t *arena = (arena_t *)args;
-
-    gc_chunk = gc_alloc_chunk(arena);
-
-    malloc_mutex_lock(&arena->lock);
-    malloc_mutex_lock(&arena->gc_lock);
-    chunk = ql_first(&arena->avail_chunks);
-    if(chunk == NULL)
-        return;
-    if(chunk->live==true)
-        chunk = ql_next(&arena->avail_chunks,chunk,avail_link);
-    malloc_mutex_unlock(&arena->gc_lock);
-    malloc_mutex_unlock(&arena->lock);
-    if(chunk == NULL)
-        return;
-    while(true)
+    slowgc_task_t *task = (slowgc_task_t *)args;
+    chunk_t *chunk,*bchunk;
+    chunk_t *gc_chunk = gc_alloc_chunk(task->arena,task->first);
+    bchunk = task->start;
+    chunk  = sl_next(bchunk,avail_link);
+    for(int i = 0;i<GC_SLOWGC_NUM_PRE_THREAD;i++)
     {   
-        if(chunk->chunktype == CHUNK_TYPE_GC){
-            break;
-        }
-        malloc_mutex_lock(&arena->gc_lock);
-        if(chunk->gcing == true){
-            chunk = ql_next(&arena->avail_chunks,chunk,avail_link);  
+        assert(chunk->live==false);
+        assert(chunk->chunktype==CHUNK_TYPE_LOG);
+        if((chunk->availsize + chunk->dirtysize == chunksize-sizeof(chunk_t))){
+            arena_chunk_dalloc(task->arena,bchunk,chunk);
+            chunk = sl_next(bchunk,avail_link);
             continue;
-        }else{
-            chunk->gcing = true;
         }
-        malloc_mutex_unlock(&arena->gc_lock);
-
-
-        chunk_t *tmp = chunk_do_slowgc(arena,chunk,gc_chunk);
+        //todo slowgc check
+        chunk_t *tmp = chunk_do_slowgc(task->arena,chunk,gc_chunk,bchunk,task->first);
         if(tmp!=gc_chunk){
             gc_chunk = tmp;
         }
+        arena_chunk_dalloc(task->arena,bchunk,chunk);
+        chunk = sl_next(bchunk,avail_link);
 
-        malloc_mutex_lock(&arena->gc_lock);
-        ql_remove(&arena->avail_chunks,chunk,avail_link);
-        chunk = ql_next(&arena->avail_chunks,chunk,avail_link);
-        malloc_mutex_unlock(&arena->gc_lock);  
     }
+    
 }
+
 
 
 void 
 slowgc_scheduler(void *args)
-{
-    for(int i = 0;i<GC_THREAD_NUM;i++){
-        threadpool_add(tpool,&do_slowgc,args,0);
+{   
+    arena_t *arena = (arena_t *) args;
+    chunk_t *first_chunk = sl_first(&arena->avail_chunks);
+
+    fake_chunk_t *fake_first = malloc(sizeof(fake_chunk_t));
+    sl_elm_new(fake_first,avail_link);
+    sl_after_insert(first_chunk,fake_first,avail_link);
+
+
+    chunk_t *chunk = sl_next(fake_first,avail_link);
+    //todo:chunk==NULL?
+    fake_chunk_t *start_fchunk = fake_first;
+    fake_chunk_t *end_fchunk;
+    while(true){
+        for(int i = 0;i < GC_SLOWGC_NUM_PRE_THREAD-1;i++){
+            chunk = sl_next(chunk,avail_link);
+            if(chunk==NULL){
+                goto breakall;
+            }
+        }
+        end_fchunk = malloc(sizeof(fake_chunk_t));
+        sl_elm_new(end_fchunk,avail_link);
+        sl_after_insert(chunk,end_fchunk,avail_link);
+        slowgc_task_t *task = malloc(sizeof(slowgc_task_t));
+        task->arena = arena;
+        task->start = start_fchunk;
+        task->first = first_chunk;
+
+        threadpool_add(tpool,&do_own_slowgc,task,0);
+
+        start_fchunk = end_fchunk;
+        chunk = sl_next(start_fchunk,avail_link);
+        if(chunk==NULL){
+            goto breakall;
+        }
     }
+breakall:
+    //deal with tail chunks less than GC_SLOWGC_NUM_PRE_THREAD.
+    chunk_t *bchunk = start_fchunk;
+    chunk = sl_next(bchunk,avail_link);
+    chunk_t *gc_chunk = gc_alloc_chunk(arena,first_chunk);
+    while(chunk!=NULL){
+        if((chunk->availsize + chunk->dirtysize == chunksize-sizeof(chunk_t))){
+            arena_chunk_dalloc(arena,bchunk,chunk);
+            chunk = sl_next(bchunk,avail_link);
+            continue;
+        }
+         //todo slowgc check
+        chunk_t *tmp = chunk_do_slowgc(arena,chunk,gc_chunk,bchunk,first_chunk);
+        if(tmp!=gc_chunk){
+            gc_chunk = tmp;
+        }
+        arena_chunk_dalloc(arena,bchunk,chunk);
+        chunk = sl_next(chunk,avail_link);
+    }
+
+    //同步
+    //delete fake
+
+    
 
 }
 

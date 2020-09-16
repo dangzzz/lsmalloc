@@ -6,6 +6,7 @@
 #define CHUNK_TYPE_SLAB	's'
 #define CHUNK_TYPE_LOG	'l'
 #define CHUNK_TYPE_GC	'g'
+#define CHUNK_TYPE_FAKE	'f'
 #define SLAB_DIRTY 'd'
 #define SLAB_CLEAN 'c'
 
@@ -46,6 +47,7 @@ struct region_s{
 
 /*两个类型的chunk共用*/
 struct chunk_s{
+	//第一个必须是chunktype
 	char				chunktype;   //
 
 	ql_head(region_t) 	regions;
@@ -56,7 +58,7 @@ struct chunk_s{
 
 	void					*paddr;    //
 
-	ql_elm(chunk_t)	avail_link;	 //
+	sl_elm(chunk_t)	avail_link;	 //
 
 	size_t				availsize;    //
 	size_t				dirtysize;
@@ -128,10 +130,10 @@ struct arena_s {
 	pmempool_t				pool;
 
 
-	ql_head(chunk_t) 	avail_chunks;
+	sl_head(chunk_t) 	avail_chunks;
 	
 	/*已分配的schunk的链表插入到这个链表中*/
-	ql_head(chunk_t)  avail_schunks;
+	sl_head(chunk_t)  avail_schunks;
 
 	chunk_t				*maxchunk;
 

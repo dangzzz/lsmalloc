@@ -40,7 +40,7 @@ struct {								\
 	do{													\
 		(a_elm)->a_field.qle_next = (a_qlelm)->a_field.qle_next;\
 	}while(!__sync_bool_compare_and_swap(&(a_qlelm)->a_field.qle_next,(a_elm)->a_field.qle_next,(a_elm)));\
-}
+}while(0)
 
 #define	sl_next(a_elm, a_field)					\
 	((a_elm)->a_field.qle_next)

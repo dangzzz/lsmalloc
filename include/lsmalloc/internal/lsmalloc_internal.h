@@ -36,6 +36,7 @@
 #include "lsmalloc/internal/rb.h"
 #include "lsmalloc/internal/qr.h"
 #include "lsmalloc/internal/ql.h"
+#include "lsmalloc/internal/sl.h"
 
 #include "threadpool.h"
 /*

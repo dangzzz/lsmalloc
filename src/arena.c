@@ -60,13 +60,13 @@ arena_chunk_alloc(arena_t *arena, char chunktype){
     if (chunktype == CHUNK_TYPE_LOG)
     {   
         ql_new(&chunk->regions);
-        ql_elm_new(chunk,avail_link);
-        ql_head_insert(&arena->avail_chunks,chunk,avail_link);
+        sl_elm_new(chunk,avail_link);
+        sl_head_insert(&arena->avail_chunks,chunk,avail_link);
     }
     else 
     {
-        ql_elm_new(chunk,avail_link);
-        ql_head_insert(&arena->avail_schunks,chunk,avail_link);
+        sl_elm_new(chunk,avail_link);
+        sl_head_insert(&arena->avail_schunks,chunk,avail_link);
     }
 
    
@@ -103,8 +103,8 @@ arena_new(arena_t *arena, unsigned ind)
     arena->gc_chunk = NULL;
     pmempool_create(&arena->pool);
 
-    ql_new(&arena->avail_chunks);
-    ql_new(&arena->avail_schunks);
+    sl_new(&arena->avail_chunks);
+    sl_new(&arena->avail_schunks);
 
     int i;
     for (i = 0; i < CLASS_NUM; i = i+1)
@@ -137,7 +137,7 @@ arena_region_alloc(arena_t *arena,size_t size, bool zero, void **ptr)
 {
     chunk_t *chunk;
     region_t *region = (region_t *)malloc(sizeof(region_t));
-    chunk=ql_first(&arena->avail_chunks);
+    chunk=sl_first(&arena->avail_chunks);
     if(chunk == NULL||chunk->availsize<size||chunk->chunktype!=CHUNK_TYPE_LOG){
         chunk->live = false;
         chunk = arena_chunk_alloc(arena, CHUNK_TYPE_LOG);
@@ -204,7 +204,7 @@ arena_malloc_small_hard(arena_t *arena,size_t size, bool zero, void **ptr, unsig
 {
  //   printf("small hard\n");
 
-    chunk_t *chunk = ql_first(&arena->avail_schunks); 
+    chunk_t *chunk = sl_first(&arena->avail_schunks); 
 
     //chunk_t *chunk = ql_first(&arena->avail_chunks); 
     sregion_t *sregion = (sregion_t *)malloc(sizeof(sregion_t));
