@@ -247,7 +247,18 @@ breakall:
     }
 
     sem_wait(&arena->gc_sem);
-    //delete fake
+    
+    bchunk = first_chunk;
+    chunk = sl_next(first_chunk,avail_link);
+    while(chunk!=NULL){
+        if(chunk->chunktype == CHUNK_TYPE_FAKE){
+            sl_after_remove(bchunk,chunk,avail_link);
+            free(chunk);
+        }else{
+            bchunk = chunk;
+        }
+        chunk = sl_next(first_chunk,avail_link);
+    }
 
     
 

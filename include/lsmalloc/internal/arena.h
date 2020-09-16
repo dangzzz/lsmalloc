@@ -49,6 +49,8 @@ struct region_s{
 struct chunk_s{
 	//第一个必须是chunktype
 	char				chunktype;   //
+	
+	sl_elm(chunk_t)	avail_link;	 //
 
 	ql_head(region_t) 	regions;
 
@@ -58,7 +60,6 @@ struct chunk_s{
 
 	void					*paddr;    //
 
-	sl_elm(chunk_t)	avail_link;	 //
 
 	size_t				availsize;    //
 	size_t				dirtysize;
