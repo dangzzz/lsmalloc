@@ -3,9 +3,13 @@
 
 
 int main(){
-    printf("hello world!");
+    setvbuf(stdout, NULL, _IONBF, 0);
+    printf("hello world!\n");
 
-    lspmemdir("/mnt/pmemdir/");
+    lspmemdir("/mnt/pmem/");
+    printf("1\n");
     void *ptr = lsmalloc(150,&ptr);
+    printf("2\n");
+    return 0;
 
 }

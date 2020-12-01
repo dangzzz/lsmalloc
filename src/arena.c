@@ -40,6 +40,7 @@ arena_chunk_alloc_vmem(){
 
 static chunk_t *
 arena_chunk_alloc(arena_t *arena, char chunktype){
+    malloc_printf("Chunk Alloc: arena:%p, chunktype:%c\n",arena,chunktype);
     void *addr;
     addr = arena_chunk_alloc_pmem(&arena->pool);
 
@@ -71,7 +72,7 @@ arena_chunk_alloc(arena_t *arena, char chunktype){
 
    
 
-
+    
     maybe_gc(arena);
 
     malloc_mutex_init(&chunk->gc_lock);
@@ -140,7 +141,8 @@ arena_region_alloc(arena_t *arena,size_t size, bool zero, void **ptr)
     chunk_t *chunk;
     region_t *region = (region_t *)malloc(sizeof(region_t));
     chunk=sl_first(&arena->avail_chunks);
-    if(chunk == NULL||chunk->availsize<size||chunk->chunktype!=CHUNK_TYPE_LOG){
+    if(chunk == NULL||chunk->availsize<size){
+        if(chunk!=NULL)
         chunk->live = false;
         chunk = arena_chunk_alloc(arena, CHUNK_TYPE_LOG);
     }
@@ -161,7 +163,7 @@ void *
 arena_malloc_large(arena_t *arena,size_t size, bool zero, void **ptr)
 {
  //   printf("large\n");
- 
+    
     void        *ret;
 
     malloc_mutex_lock(&arena->lock);
@@ -169,6 +171,7 @@ arena_malloc_large(arena_t *arena,size_t size, bool zero, void **ptr)
     /* 分配的大小对齐到8字节 */
     size += sizeof(pregion_t);
 	size = ALIGNMENT_CEILING(size, sizeof(long long));
+    //malloc_printf("Malloc Large: ptr:%p, size:%zu, arena:%p\n",ptr,size,arena);
     
     ret = arena_region_alloc(arena,size,zero,ptr);
     
@@ -267,11 +270,12 @@ hard分配：需要分配一个新的sregion
 */
 void * 
 arena_malloc_small(arena_t *arena,size_t size, bool zero, void **ptr)
-{
+{   
+    malloc_printf("Malloc Small: ptr:%p, size:%zu, arena:%p\n",ptr,size,arena);
     void        *ret;
 
     malloc_mutex_lock(&arena->lock);
-
+    
     unsigned short cls = size_to_class(size);
     size = class_to_size(cls);
     sregion_t * sregion = arena->avail_sregion[cls];

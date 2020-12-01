@@ -246,8 +246,9 @@ malloc_init_hard(void){
 	/* Copy the pointer to the one arena that was already initialized. */
 	arenas[0] = init_arenas[0];
 
+	tpool = threadpool_create(THREAD, QUEUE, 0);
 
-	assert((tpool = threadpool_create(THREAD, QUEUE, 0)) != NULL);
+	assert(tpool != NULL);
 
 
 	malloc_initialized = true;
@@ -271,7 +272,7 @@ lsmalloc(size_t size,void **ptr){
     }
 
     ret = imalloc(size,ptr);
-
+	//malloc_printf("Finish Malloc: ptr:%p, size:%zu\n",ptr,size);
     return ret;
 }
 

@@ -174,9 +174,13 @@ arena_malloc(arena_t *arena, size_t size, bool zero, void **ptr)
 
 	if(size < arena_maxsmall){
 		//return NULL;
+		
 		return(arena_malloc_small(choose_arena(arena), size, zero, ptr));
+		
 	}else{
+		
 		return(arena_malloc_large(choose_arena(arena), size, zero, ptr));
+		
 	}
 
 }

@@ -45,7 +45,7 @@ extern "C" {
 //#define MAX_THREADS 64
 //#define MAX_QUEUE 65536
 
-#define MAX_THREADS 16
+#define MAX_THREADS 32
 #define MAX_QUEUE 65536
 
 typedef struct threadpool_t threadpool_t;

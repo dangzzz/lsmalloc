@@ -8,27 +8,32 @@ typedef struct slowgc_task_s slowgc_task_t;
 /******************************************************************************/
 #ifdef LSMALLOC_H_STRUCTS
 
-struct gc_info_s{   
+struct gc_info_s
+{
     arena_t *arena;
     fake_chunk_t *fake;
 };
 
-struct fake_chunk_s{
-    char				chunktype; 
-    sl_elm(chunk_t)    avail_link;
+struct fake_chunk_s
+{
+    char chunktype;
+    sl_elm(chunk_t) avail_link;
 };
 
-struct slowgc_task_s{
-    arena_t         *arena;
-    chunk_t         *start;
-    chunk_t         *first;
-}
+struct slowgc_task_s
+{
+    arena_t *arena;
+    chunk_t *start;
+    chunk_t *first;
+};
 
 #endif /* LSMALLOC_H_STRUCTS */
 /******************************************************************************/
 #ifdef LSMALLOC_H_EXTERNS
 
 void maybe_gc(arena_t *arena);
+void sum_arena_avail_chunks(arena_t *arena);
+void slowgc(arena_t *arena);
 
 #endif /* LSMALLOC_H_EXTERNS */
 /******************************************************************************/
@@ -36,4 +41,3 @@ void maybe_gc(arena_t *arena);
 
 #endif /* LSMALLOC_H_INLINES */
 /******************************************************************************/
-

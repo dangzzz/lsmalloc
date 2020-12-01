@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.10)
 cmake_policy(VERSION 3.10)
 project(lsmalloc)
 
+SET(CMAKE_BUILD_TYPE "Debug")
+SET(CMAKE_CXX_FLAGS_DEBUG "-DDEBUG")
+
 #make时显式输出执行的命令
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
@@ -11,7 +14,9 @@ set (LIBRARY_OUTPUT_PATH ${CMAKE_CURRENT_LIST_DIR}/lib)
 set (EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_LIST_DIR}/bin)
 
 #添加头文件搜索目录,相当于-I
-include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
+include_directories(${CMAKE_CURRENT_LIST_DIR}/include ${CMAKE_CURRENT_LIST_DIR}/test/include)
+
+add_library(threadpool STATIC ${LIBRARY_OUTPUT_PATH}/threadpool.c)
 
 #将src目录下所有的源文件加入列表lsmalloc_src中
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/src lsmalloc_src)
@@ -22,6 +27,7 @@ add_library(lsmalloc_static STATIC ${lsmalloc_src})
 #为lsmalloc_static添加编译器flag
 target_compile_options(lsmalloc_static PRIVATE -std=gnu99 -g3 -Wall -pipe -funroll-loops -O0 -D_GNU_SOURCE -D_REENTRANT)
 target_link_libraries(lsmalloc_static pthread)
+target_link_libraries(lsmalloc_static ${CMAKE_CURRENT_LIST_DIR}/lib/libthreadpool.a)
 target_link_libraries(lsmalloc_static pmem)
 #设置lsmalloc_static输出时叫lsmalloc
 set_target_properties(lsmalloc_static PROPERTIES OUTPUT_NAME "lsmalloc")
@@ -33,7 +39,7 @@ message(AUTHOR_WARNING "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n目前生成的Make
 enable_testing()
 
 #只需要在下面一行加入你测试文件的文件名就可以了,测试文件要放在test/integration/
-set(testsource sample_test.c nofree_test.cpp)
+set(testsource sample_test.c thread_test.c slowgc_test.c)
 
 list(LENGTH testsource testsourcelength)
 math(EXPR testsourcelength "${testsourcelength}-1")
