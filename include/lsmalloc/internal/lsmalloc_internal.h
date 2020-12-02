@@ -141,6 +141,7 @@ arena_t *choose_arena_hard(void);
 extern char *pmem_path;
 
 extern threadpool_t *tpool;
+extern pmempool_t pp;
 
 #include "lsmalloc/internal/atomic.h"
 #include "lsmalloc/internal/util.h"

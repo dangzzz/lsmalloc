@@ -42,7 +42,7 @@ static chunk_t *
 arena_chunk_alloc(arena_t *arena, char chunktype){
     malloc_printf("Chunk Alloc: arena:%p, chunktype:%c\n",arena,chunktype);
     void *addr;
-    addr = arena_chunk_alloc_pmem(&arena->pool);
+    addr = arena_chunk_alloc_pmem(&pp);
 
     chunk_t * chunk;
     chunk = arena_chunk_alloc_vmem();
@@ -104,7 +104,6 @@ arena_new(arena_t *arena, unsigned ind)
     arena->gc_chunk = NULL;
     arena->thread_count = 0;
     sem_init(&arena->gc_sem, 0, 0);
-    pmempool_create(&arena->pool);
 
     sl_new(&arena->avail_chunks);
     sl_new(&arena->avail_schunks);

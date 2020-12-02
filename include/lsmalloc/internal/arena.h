@@ -128,8 +128,6 @@ struct arena_s {
 	 */
 	malloc_mutex_t		lock;
 
-	pmempool_t				pool;
-
 
 	sl_head(chunk_t) 	avail_chunks;
 	

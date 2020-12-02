@@ -8,7 +8,7 @@ int main(){
 
     lspmemdir("/mnt/pmem/");
     printf("1\n");
-    void *ptr = lsmalloc(150,&ptr);
+    void *ptr = lsmalloc(320,&ptr);
     printf("2\n");
     return 0;
 

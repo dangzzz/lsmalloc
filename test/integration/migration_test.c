@@ -40,7 +40,7 @@ test_region_migration(chunk_t *chunk,chunk_t *gc_chunk,region_t *oldregion)
 chunk_t *
 test_alloc_chunk(arena_t *arena,chunk_t *chunk_before){
     void *addr;
-    addr = pmempool_chunk_alloc(&arena->pool);
+    addr = pmempool_chunk_alloc(&pp);
 
     chunk_t * chunk;
     chunk = malloc(sizeof(chunk_t));

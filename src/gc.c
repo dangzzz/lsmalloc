@@ -64,7 +64,7 @@ arena_chunk_dalloc(arena_t *arena, chunk_t *bchunk, chunk_t *chunk)
     sl_after_remove(bchunk, chunk, avail_link);
     malloc_printf("Chunk Dalloc: arena is %p, chunk is %p\n", arena, chunk);
     sum_arena_avail_chunks(arena);
-    pmempool_free(&arena->pool, chunk);
+    pmempool_free(&pp, chunk);
 }
 
 void fastgc_scheduler(void *args)
@@ -100,7 +100,7 @@ chunk_t *
 gc_alloc_chunk(arena_t *arena, chunk_t *chunk_before)
 {
     void *addr;
-    addr = pmempool_chunk_alloc(&arena->pool);
+    addr = pmempool_chunk_alloc(&pp);
 
     chunk_t *chunk;
     chunk = malloc(sizeof(chunk_t));
@@ -362,7 +362,7 @@ slowgc(arena_t *arena)
 void maybe_gc(arena_t *arena)
 {
 
-    int usedpct = pmempool_usedpct(&arena->pool);
+    int usedpct = pmempool_usedpct(&pp);
     if (usedpct >= 70)
     {
         fastgc(arena);

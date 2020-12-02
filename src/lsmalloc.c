@@ -32,7 +32,7 @@ static malloc_mutex_t	init_lock = PTHREAD_MUTEX_INITIALIZER;
 
 extern char * pmem_path;
 
-
+pmempool_t   pp;
 threadpool_t *tpool;
 
 /******************************************************************************/
@@ -246,6 +246,7 @@ malloc_init_hard(void){
 	/* Copy the pointer to the one arena that was already initialized. */
 	arenas[0] = init_arenas[0];
 
+	pmempool_create(&pp);
 	tpool = threadpool_create(THREAD, QUEUE, 0);
 
 	assert(tpool != NULL);
